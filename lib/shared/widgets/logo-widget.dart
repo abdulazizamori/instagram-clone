@@ -7,8 +7,11 @@ class LogoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
-        // Determine the logo color based on the current theme
-        Color logoColor = (themeMode == ThemeMode.dark) ? Colors.white : Colors.black;
+        // Get the current brightness of the theme
+        bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+        // Determine the logo color based on the theme brightness
+        Color logoColor = isDarkMode ? Colors.white : Colors.black;
 
         return ColorFiltered(
           colorFilter: ColorFilter.mode(logoColor, BlendMode.srcIn),

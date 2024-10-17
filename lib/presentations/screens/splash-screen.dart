@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:instaclone/data/sharedprefrence/cache.dart';
 import 'package:instaclone/presentations/screens/theme-mode.dart';
 import 'package:instaclone/shared/widgets/logo-widget.dart';
 
@@ -12,6 +15,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  var cache = CacheHelper();
+
+
   @override
   void initState() {
     super.initState();
@@ -30,9 +36,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> redirect() async {
     await Future.delayed(const Duration(seconds: 2));
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => ThemeModeScreen()),
+    var token = cache.getData(key: 'auth_token');
+    Navigator.pushReplacementNamed(context, token != null? 'themescreen':'login'
     );
   }
 }

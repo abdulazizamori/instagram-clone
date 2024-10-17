@@ -6,15 +6,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
 import 'package:instaclone/logic/themeCubit/theme-cubit.dart';
+import 'package:instaclone/presentations/screens/auth-screens/login-screen.dart';
 import 'package:instaclone/presentations/screens/splash-screen.dart';
+import 'package:instaclone/presentations/screens/theme-mode.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core/theme/app_theme.dart';
+import 'data/sharedprefrence/cache.dart';
 import 'firebase_options.dart';
 import 'presentations/screens/auth-screens/register-screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await CacheHelper.cachIntialization();
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorage.webStorageDirectory
@@ -47,7 +51,14 @@ class MyApp extends StatelessWidget {
                 themeMode: mode,
                 darkTheme: AppTheme.DarkTheme,
                 theme: AppTheme.lightTheme,
-                home: RegisterScreen(),
+                home: LogInScreen(),
+                initialRoute: 'splash',
+                routes: {
+                  'login': (context) => LogInScreen(),
+                  'register': (context) => RegisterScreen(),
+                  'splash': (context) => SplashScreen(),
+                  'themescreen': (context) => ThemeModeScreen(),
+                },
               ),
             ),
           );

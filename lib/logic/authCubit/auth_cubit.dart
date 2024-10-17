@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instaclone/data/sharedprefrence/cache.dart';
 import 'package:meta/meta.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,7 @@ class AuthCubit extends Cubit<AuthState> {
   String? get downloadUrl => _downloadUrl;
   final ImagePicker picker = ImagePicker();
   String? uploadedImageUrl;
+  var cache = CacheHelper();
 
 
 
@@ -99,13 +101,11 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthLoading());
       await _auth.signInWithEmailAndPassword(
           email: email!, password: password!);
-      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('vendors').doc(FirebaseAuth.instance.currentUser!.uid).get();
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).get();
 
       String token = doc.get('uid') as String;
-
       // Save the token using SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
+      await cache.setData(key: 'auth_token', value: token);
       print('=============>$token');
       emit(AuthSuccess(token));
     } on FirebaseAuthException catch (e) {
@@ -117,7 +117,7 @@ class AuthCubit extends Cubit<AuthState> {
   /// Check login status from cache
   Future<void> checkAuthStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('auth_token');
+    String? token = cache.getData( key:'auth_token');
 
     if (token != null) {
       emit(AuthSuccess(token)); // User is already authenticated
@@ -136,7 +136,7 @@ class AuthCubit extends Cubit<AuthState> {
         String uid = currentUser.uid;
 
         // Update Firestore document in 'users' collection
-        await _firestore.collection('vendors').doc(uid).update({
+        await _firestore.collection('users').doc(uid).update({
           '$field': value,
         });
 
@@ -155,10 +155,9 @@ class AuthCubit extends Cubit<AuthState> {
 
 
   Future<void> signOut() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    print('user token:${prefs.get('auth_token')}');
-    await prefs.remove('auth_token');
-    print(prefs.get('auth_token'));
+    print('user token:${cache.getData( key: 'auth_token')}');
+    await cache.deleteData(key:'auth_token');
+    print(cache.getData(key:'auth_token'));
     print('User logged out'); // Debug statement
     emit(SignOut());
   }
@@ -176,7 +175,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Fetch the user's document from the 'vendors' collection
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('vendors')
+          .collection('users')
           .doc(userId) // Get the document for the current user
           .get();
 
@@ -205,20 +204,20 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> updateUserInfo(UserModel user) async {
-    final String userId = FirebaseAuth.instance.currentUser!.uid;
-    user.uid = userId;
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('vendors')
-          .doc(userId)
-          .update(user.toMap());
-
-      emit(UserInfoUpdated());
-      await fetchUserInfo(); // Fetch updated products list
-    } catch (error) {
-      emit(UserInfoLoadError(error.toString()));
-    }
-  }
+  // Future<void> updateUserInfo(UserModel user) async {
+  //   final String userId = FirebaseAuth.instance.currentUser!.uid;
+  //   user.uid = userId;
+  //
+  //   try {
+  //     await FirebaseFirestore.instance
+  //         .collection('users')a
+  //         .doc(userId)
+  //         .update(user.toMap());
+  //
+  //     emit(UserInfoUpdated());
+  //     await fetchUserInfo(); // Fetch updated products list
+  //   } catch (error) {
+  //     emit(UserInfoLoadError(error.toString()));
+  //   }
+  // }
 }
