@@ -45,6 +45,9 @@ dependencies:
   shared_preferences: ^2.3.2
   image_picker: ^1.1.2
   firebase_storage: ^12.3.3
+  flutter_snake_navigationbar: ^0.6.1
+  firebase_app_check: ^0.3.1+4
+
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +74,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/icons/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -84,11 +88,16 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
+  fonts:
+     - family: SFUIDisplay
+       fonts:
+         - asset: assets/fonts/sf-ui-display-black-58646a6b80d5a.otf
+         - asset: assets/fonts/sf-ui-display-bold-58646a511e3d9.otf
+           weight: 700
+         - asset: assets/fonts/sf-ui-display-light-58646b33e0551.otf
+           weight: 300
+         - asset: assets/fonts/sf-ui-display-medium-58646be638f96.otf
+           weight: 500
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

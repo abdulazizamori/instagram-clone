@@ -81,7 +81,7 @@ class _LogInScreenState extends State<LogInScreen> {
         },
         listener: (context, state) {
           if (state is AuthSuccess) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ThemeModeScreen()));
+            Navigator.pushReplacementNamed(context, 'profileScreen');
 
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(

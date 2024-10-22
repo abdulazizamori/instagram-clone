@@ -3,7 +3,8 @@ import 'package:instaclone/core/theme/app_colors.dart';
 
 class AppTheme {
   static final lightTheme = ThemeData(
-      primaryColor: Colors.black,
+    fontFamily: 'SFUIDisplay',
+    primaryColor: Colors.black,
       scaffoldBackgroundColor: AppColors.lightBackground,
       brightness: Brightness.light,
       // elevatedButtonTheme: ElevatedButtonThemeData(
@@ -19,7 +20,8 @@ class AppTheme {
 
 
   static final DarkTheme = ThemeData(
-      primaryColor: Colors.white,
+    fontFamily: 'SFUIDisplay',
+    primaryColor: Colors.white,
       scaffoldBackgroundColor: AppColors.darkBackground,
       brightness: Brightness.dark,
       // elevatedButtonTheme: ElevatedButtonThemeData(

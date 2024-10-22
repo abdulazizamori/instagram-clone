@@ -39,15 +39,6 @@ class UploadError extends AuthState {
   UploadError(this.message);
 }
 
-class UserVerificationStatusLoadedState extends AuthState {
-  final bool isVerified;
-  UserVerificationStatusLoadedState(this.isVerified);
-}
-
-final class UserVerificationStatusErrorState extends AuthState{
-  UserVerificationStatusErrorState(String string);
-}
-
 
 final class UserInfoLoaded extends AuthState {
   final UserModel userInfo;
@@ -66,3 +57,21 @@ final class UserInfoLoading extends AuthState {}
 class SignOut extends AuthState {}
 
 final class UserInfoUpdated extends AuthState{}
+
+class UserInfoPostsCountLoaded extends AuthState {
+  final int postsCount;
+
+  UserInfoPostsCountLoaded(this.postsCount);
+}
+
+class ImageSelected extends AuthState {
+  final XFile image;
+
+  ImageSelected(this.image);
+}
+
+class ImageSelectionError extends AuthState {
+  final String message;
+
+  ImageSelectionError(this.message);
+}

@@ -63,7 +63,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           email.text.isNotEmpty &&
                           password.text.isNotEmpty) {
                         await cubit.signUpWithEmailAndPassword(
-                            email.text, password.text,name.text);
+                            email.text.trim(), password.text.trim(),name.text.trim());
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text("Please fill in all fields")),
@@ -93,10 +93,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     }, listener: (context, state) {
       if (state is UserCreateSuccess) {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (BuildContext context) => LogInScreen()));
+        Navigator.pushReplacementNamed(
+            context,'login');
       }else if (state is AuthError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(state.message)),

@@ -1,13 +1,21 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
+import 'package:instaclone/logic/posts-cubit/posts_cubit.dart';
+import 'package:instaclone/logic/storyCubit/story_cubit.dart';
 import 'package:instaclone/logic/themeCubit/theme-cubit.dart';
+import 'package:instaclone/logic/user-detailsCubit/user_details_cubit.dart';
 import 'package:instaclone/presentations/screens/auth-screens/login-screen.dart';
-import 'package:instaclone/presentations/screens/splash-screen.dart';
+import 'package:instaclone/presentations/screens/profile-screen/addpost.dart';
+import 'package:instaclone/presentations/screens/profile-screen/profile-screen.dart';
+import 'package:instaclone/presentations/screens/splash-screen/splash-screen.dart';
 import 'package:instaclone/presentations/screens/theme-mode.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -27,7 +35,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  await FirebaseAppCheck.instance.activate(
+    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+    androidProvider: AndroidProvider.debug,
+  );
   runApp(MyApp());
 }
 
@@ -42,8 +53,13 @@ class MyApp extends StatelessWidget {
           return MultiBlocProvider(
             providers: [
               BlocProvider(create: (context) => ThemeCubit()),
-              BlocProvider(create: (context) => AuthCubit())
+              BlocProvider(create: (context) => AuthCubit()),
+              BlocProvider(create: (context) => UserDetailsCubit()),
+              BlocProvider(create: (context) => PostsCubit()),
+              BlocProvider(create: (context) => StoryCubit()),
+
             ],
+
             child: BlocBuilder<ThemeCubit, ThemeMode>(
               builder: (context, mode) => MaterialApp(
                 debugShowCheckedModeBanner: false,
@@ -58,6 +74,9 @@ class MyApp extends StatelessWidget {
                   'register': (context) => RegisterScreen(),
                   'splash': (context) => SplashScreen(),
                   'themescreen': (context) => ThemeModeScreen(),
+                  'profileScreen': (context) => ProfileScreen(),
+                  'createPost':(context) => CreatePostScreen(),
+
                 },
               ),
             ),

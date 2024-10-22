@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,8 +7,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instaclone/data/sharedprefrence/cache.dart';
 import 'package:meta/meta.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../data/models/user-model.dart';
 
 part 'auth_state.dart';
@@ -22,13 +20,28 @@ class AuthCubit extends Cubit<AuthState> {
   String? errorMessage;
   bool verified = false;
   String? _downloadUrl;
+
   String? get downloadUrl => _downloadUrl;
   final ImagePicker picker = ImagePicker();
   String? uploadedImageUrl;
   var cache = CacheHelper();
 
+  // Function to pick a single image for profile picture
+  Future<void> pickImage() async {
+    try {
+      // Use pickImage instead of pickMultiImage to select only one image
+      XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        emit(ImageSelected(image)); // Emit state with the selected image
+        await uploadImage(image); // Upload the selected image and update the profile picture
+      }
+    } catch (e) {
+      emit(ImageSelectionError(e.toString())); // Emit error state on failure
+    }
+  }
 
 
+// Function to upload the selected profile picture
   Future<String?> uploadImage(XFile image) async {
     try {
       emit(UploadLoading()); // Emit loading state
@@ -36,7 +49,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       // Define storage reference path
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference storageRef = _storage.ref().child("images/$fileName");
+      Reference storageRef = _storage.ref().child("ProfilePictures/$fileName");
 
       // Upload the image to Firebase Storage
       UploadTask uploadTask = storageRef.putFile(imageFile);
@@ -44,47 +57,54 @@ class AuthCubit extends Cubit<AuthState> {
 
       // Get the download URL
       String downloadUrl = await snapshot.ref.getDownloadURL();
-      uploadedImageUrl = downloadUrl; // Store the URL
-      emit(UploadSuccess(downloadUrl)); // Emit success with the download URL
-      return downloadUrl;
 
-      // Return the download URL for further use
+      // Update the user's profile picture URL in Firestore
+      final String userId = FirebaseAuth.instance.currentUser!.uid; // Get current user ID
+      await _firestore.collection('users').doc(userId).update({
+        'profilePicture': downloadUrl, // Update the profilePicture field
+      });
+
+      emit(UploadSuccess(downloadUrl)); // Emit success with the download URL
+      return downloadUrl; // Return the download URL
+
     } catch (e) {
       emit(UploadError(e.toString())); // Emit error state with the error message
       return null;
     }
   }
 
-
-  Future<void> signUpWithEmailAndPassword(String? email, String? password, String? name) async {
+  /// Sign up with email and password
+  Future<void> signUpWithEmailAndPassword(
+      String? email, String? password, String? userName) async {
     try {
       emit(AuthLoading());
-      // Sign up the user with email and password
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+      await _auth.createUserWithEmailAndPassword(
         email: email!,
         password: password!,
       );
 
-
-      // Create a User instance
       UserModel newUser = UserModel(
-          uid: userCredential.user?.uid,
-          name: name, // Pass this name as an argument
-          email: email,
-
+        uid: userCredential.user?.uid,
+        userName: userName,
+        email: email,
+        name: '',
+        website: '',
+        bio: '',
+        gender: '',
+        profilePicture: '',
+        followers: [],
+        following: [],
+        isVerified: false,
+        createdAt: DateTime.now(),
+        lastUpdated: DateTime.now(),
+        favorites: [],
+        postsCount: 0,
       );
 
-      // Store additional user info in Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(newUser.uid) // Use the uid as the document ID
-          .set(newUser.toMap()) // Use the toMap() method to convert the User to a Map
-          .then((_) {
-        emit(UserCreateSuccess());
-      })
-          .catchError((e) {
-        throw Exception("Failed to save user data: $e");
-      });
+      await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+
+      emit(UserCreateSuccess());
     } on FirebaseAuthException catch (e) {
       errorMessage = e.message;
       emit(UserCreateError(e.toString()));
@@ -94,19 +114,19 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-
-
+  /// Sign in with email and password
   Future<void> signInWithEmailAndPassword(String? email, String? password) async {
     try {
       emit(AuthLoading());
-      await _auth.signInWithEmailAndPassword(
-          email: email!, password: password!);
-      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).get();
+      await _auth.signInWithEmailAndPassword(email: email!, password: password!);
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(_auth.currentUser!.uid)
+          .get();
 
       String token = doc.get('uid') as String;
-      // Save the token using SharedPreferences
       await cache.setData(key: 'auth_token', value: token);
-      print('=============>$token');
+
       emit(AuthSuccess(token));
     } on FirebaseAuthException catch (e) {
       errorMessage = e.message;
@@ -114,36 +134,25 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  /// Check login status from cache
+  /// Check if user is logged in
   Future<void> checkAuthStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = cache.getData( key:'auth_token');
-
+    String? token = cache.getData(key: 'auth_token');
     if (token != null) {
-      emit(AuthSuccess(token)); // User is already authenticated
+      emit(AuthSuccess(token));
     } else {
-      emit(AuthInitial()); // No token found, back to initial state
+      emit(AuthInitial());
     }
   }
 
-  Future<void> updateCurrentUser(String field,String value) async {
+  /// Update user profile fields
+  Future<void> updateCurrentUser(String field, String value) async {
     try {
       emit(AuthLoading());
-      // Get current user
       User? currentUser = _auth.currentUser;
-
       if (currentUser != null) {
-        String uid = currentUser.uid;
-
-        // Update Firestore document in 'users' collection
-        await _firestore.collection('users').doc(uid).update({
-          '$field': value,
+        await _firestore.collection('users').doc(currentUser.uid).update({
+          field: value,
         });
-
-        print('========>>>>>>$field');
-        print('========>>>>>>$value');
-
-
         emit(AuthSuccess("User information updated successfully"));
       } else {
         emit(AuthError('No user is signed in'));
@@ -153,71 +162,63 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-
+  /// Sign out
   Future<void> signOut() async {
-    print('user token:${cache.getData( key: 'auth_token')}');
-    await cache.deleteData(key:'auth_token');
-    print(cache.getData(key:'auth_token'));
-    print('User logged out'); // Debug statement
+    await cache.deleteData(key: 'auth_token');
     emit(SignOut());
   }
 
+  /// Fetch current user information
   Future<void> fetchUserInfo() async {
-    emit(UserInfoLoading()); // Emit loading state
-    final String? userId = FirebaseAuth.instance.currentUser?.uid;
+    emit(UserInfoLoading());
+    final String? userId = _auth.currentUser?.uid;
 
-    // Check if userId is null
     if (userId == null) {
-      emit(UserInfoLoadError("User is not logged in.")); // Handle the error
+      emit(UserInfoLoadError("User is not logged in."));
       return;
     }
 
     try {
-      // Fetch the user's document from the 'vendors' collection
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId) // Get the document for the current user
-          .get();
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
 
-      // Check if the user document exists
       if (!userDoc.exists) {
-        emit(UserInfoLoadError("User document not found.")); // Handle the error
+        emit(UserInfoLoadError("User document not found."));
         return;
       }
 
-      // Access the user data and cast it to a Map
       Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
 
-      // Check if userData is null
       if (userData == null) {
-        emit(UserInfoLoadError("User data is empty.")); // Handle the error
+        emit(UserInfoLoadError("User data is empty."));
         return;
       }
 
-      // Create a UserModel from the userData
       UserModel userInfo = UserModel.fromMap(userData);
-
-      // Emit loaded state with user info
       emit(UserInfoLoaded(userInfo));
     } catch (error) {
-      emit(UserInfoLoadError("Error fetching user info: ${error.toString()}")); // Emit error state
+      emit(UserInfoLoadError("Error fetching user info: ${error.toString()}"));
     }
   }
 
-  // Future<void> updateUserInfo(UserModel user) async {
-  //   final String userId = FirebaseAuth.instance.currentUser!.uid;
-  //   user.uid = userId;
-  //
-  //   try {
-  //     await FirebaseFirestore.instance
-  //         .collection('users')a
-  //         .doc(userId)
-  //         .update(user.toMap());
-  //
-  //     emit(UserInfoUpdated());
-  //     await fetchUserInfo(); // Fetch updated products list
-  //   } catch (error) {
-  //     emit(UserInfoLoadError(error.toString()));
-  //   }
-  // }
+  Future<void> fetchUserPostsCount(String userId) async {
+    emit(UserInfoLoading()); // Emit loading state
+
+    try {
+      // Query Firestore for posts by the user
+      QuerySnapshot postSnapshot = await _firestore
+          .collection('posts')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      int postsCount = postSnapshot.docs.length; // Count the number of posts
+
+      // You could add this to the UserModel if you'd like to store the post count there:
+      // emit a state containing this value if needed
+      emit(UserInfoPostsCountLoaded(postsCount)); // Emit loaded state with post count
+    } catch (error) {
+      emit(UserInfoLoadError(
+          "Error fetching post count: ${error.toString()}")); // Emit error state
+    }
+  }
+
 }
