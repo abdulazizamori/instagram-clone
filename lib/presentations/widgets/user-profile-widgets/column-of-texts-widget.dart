@@ -26,7 +26,10 @@ class _CustomColumnOfTextState extends State<CustomColumnOfText> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(userinfo.name ?? ''),
+              SizedBox(height: 5,),
               Text(userinfo.userName ?? ''),
+              SizedBox(height: 5,),
               Text(userinfo.bio ?? '', maxLines: 3),
             ],
           );
@@ -38,7 +41,8 @@ class _CustomColumnOfTextState extends State<CustomColumnOfText> {
           return Center(child: Text('No user information available.')); // Default message
         }
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+      },
     );
   }
 }

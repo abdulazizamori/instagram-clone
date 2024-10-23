@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:instaclone/logic/posts-cubit/posts_cubit.dart';
-import 'package:instaclone/main.dart';
-
 import '../../../logic/authCubit/auth_cubit.dart';
 
 class CustomDetailsAppBar extends StatefulWidget {

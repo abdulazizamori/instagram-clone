@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:instaclone/logic/authCubit/auth_cubit.dart';
 import 'package:instaclone/logic/user-detailsCubit/user_details_cubit.dart';
 import '../../widgets/user-profile-widgets/circle-avatar-row-widget.dart';
 import '../../widgets/user-profile-widgets/column-of-texts-widget.dart';
@@ -39,7 +40,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         CustomColumnOfText(),
                         SizedBox(height: 10),
                         CustomEditProfileButton(
-                          onpressed: () {},
+                          onpressed: () {
+                            Navigator.pushNamed(context, 'editProfileScreen');
+                          },
                           addFriend: () {},
                         ),
                         SizedBox(height: 10),
@@ -60,7 +63,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+      },
     );
   }
 }

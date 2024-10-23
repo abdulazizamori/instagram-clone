@@ -144,23 +144,67 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  // /// Update user profile fields
+  // Future<void> updateCurrentUser(String field, String value) async {
+  //   try {
+  //     emit(AuthLoading());
+  //     User? currentUser = _auth.currentUser;
+  //     if (currentUser != null) {
+  //       await _firestore.collection('users').doc(currentUser.uid).update({
+  //         field: value,
+  //       });
+  //       emit(AuthSuccess("User information updated successfully"));
+  //     } else {
+  //       emit(AuthError('No user is signed in'));
+  //     }
+  //   } catch (e) {
+  //     emit(AuthError('Error updating user information: $e'));
+  //   }
+  // }
+
+
+
   /// Update user profile fields
-  Future<void> updateCurrentUser(String field, String value) async {
+  Future<void> updateUserProfile({
+    required String name,
+    required String userName,
+    required String website,
+    required String bio,
+    required String email,
+    required String gender,
+    required String phone,
+  }) async {
     try {
       emit(AuthLoading());
+
       User? currentUser = _auth.currentUser;
       if (currentUser != null) {
-        await _firestore.collection('users').doc(currentUser.uid).update({
-          field: value,
-        });
-        emit(AuthSuccess("User information updated successfully"));
+        Map<String, dynamic> updatedData = {
+          'name': name,
+          'userName': userName,
+          'website': website,
+          'bio': bio,
+          'email': email,
+          'gender': gender,
+          'phone':phone,
+          'lastUpdated': DateTime.now(),
+
+        };
+
+        // Update the user document in Firestore
+        await _firestore.collection('users').doc(currentUser.uid).update(updatedData);
+
+        emit(AuthSuccess("User profile updated successfully"));
       } else {
         emit(AuthError('No user is signed in'));
       }
     } catch (e) {
-      emit(AuthError('Error updating user information: $e'));
+      emit(AuthError('Error updating user profile: $e'));
     }
   }
+
+
+
 
   /// Sign out
   Future<void> signOut() async {
@@ -170,11 +214,12 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Fetch current user information
   Future<void> fetchUserInfo() async {
-    emit(UserInfoLoading());
-    final String? userId = _auth.currentUser?.uid;
+    emit(UserInfoLoading()); // Emit loading state
+    final String? userId = _auth.currentUser?.uid; // Get current user ID
 
     if (userId == null) {
       emit(UserInfoLoadError("User is not logged in."));
+      print("User is not logged in."); // Log message
       return;
     }
 
@@ -182,7 +227,8 @@ class AuthCubit extends Cubit<AuthState> {
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
 
       if (!userDoc.exists) {
-        emit(UserInfoLoadError("User document not found."));
+        emit(UserInfoLoadError("User document not found for ID: $userId.")); // Log message
+        print("User document not found for ID: $userId."); // Log message
         return;
       }
 
@@ -190,13 +236,16 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (userData == null) {
         emit(UserInfoLoadError("User data is empty."));
+        print("User data is empty for ID: $userId."); // Log message
         return;
       }
 
       UserModel userInfo = UserModel.fromMap(userData);
-      emit(UserInfoLoaded(userInfo));
+      emit(UserInfoLoaded(userInfo)); // Emit loaded state
+      print("User info loaded successfully for ID: $userId."); // Log message
     } catch (error) {
       emit(UserInfoLoadError("Error fetching user info: ${error.toString()}"));
+      print("Error fetching user info: ${error.toString()}"); // Log message
     }
   }
 

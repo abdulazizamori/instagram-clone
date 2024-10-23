@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
 
 import '../../../data/models/user-model.dart';
@@ -14,17 +13,19 @@ class CustomCircleAvatarRow extends StatefulWidget {
 }
 
 class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
+  UserModel? _lastUserInfo; // To hold the last successful user info
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthCubit, AuthState>(
       builder: (context, state) {
-        final user = context.read<AuthCubit>();
-        UserModel? userinfo;
+        final userCubit = context.read<AuthCubit>();
 
         if (state is UserInfoLoaded) {
-          userinfo = state.userInfo; // Get the user info when loaded
+          _lastUserInfo = state.userInfo; // Update with the new user info when loaded
         }
 
+        // Continue displaying the previous user info if loading or during an upload
         return Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -40,7 +41,7 @@ class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
                   onLongPress: () {
-                    user.pickImage();
+                    userCubit.pickImage(); // Trigger image selection
                   },
                   child: Container(
                     clipBehavior: Clip.antiAlias,
@@ -48,9 +49,9 @@ class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 1),
                     ),
-                    child: userinfo != null && userinfo.profilePicture!.isNotEmpty
+                    child: _lastUserInfo != null && _lastUserInfo!.profilePicture!.isNotEmpty
                         ? Image.network(
-                      userinfo.profilePicture.toString(),
+                      _lastUserInfo!.profilePicture.toString(),
                       fit: BoxFit.fill,
                     )
                         : const SizedBox(),
@@ -59,32 +60,29 @@ class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
               ),
             ),
             Spacer(),
-            if (userinfo != null) ...[
+            if (_lastUserInfo != null) ...[
               Column(
                 children: [
-                  Text('${userinfo.postsCount}'),
+                  Text('${_lastUserInfo!.postsCount}'),
                   Text('Posts'),
                 ],
               ),
               Spacer(),
               Column(
                 children: [
-                  Text('${userinfo.followers!.length}'),
+                  Text('${_lastUserInfo!.followers!.length}'),
                   Text('Followers'),
                 ],
               ),
               Spacer(),
               Column(
                 children: [
-                  Text('${userinfo.following!.length}'),
+                  Text('${_lastUserInfo!.following!.length}'),
                   Text('Following'),
                 ],
               ),
             ],
             Spacer(),
-
-
-
           ],
         );
       },
