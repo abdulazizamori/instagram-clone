@@ -12,12 +12,14 @@ import 'package:instaclone/logic/posts-cubit/posts_cubit.dart';
 import 'package:instaclone/logic/storyCubit/story_cubit.dart';
 import 'package:instaclone/logic/themeCubit/theme-cubit.dart';
 import 'package:instaclone/logic/user-detailsCubit/user_details_cubit.dart';
+import 'package:instaclone/main-screen.dart';
 import 'package:instaclone/presentations/screens/auth-screens/login-screen.dart';
 import 'package:instaclone/presentations/screens/profile-screen/addpost.dart';
 import 'package:instaclone/presentations/screens/profile-screen/edit-profile-screen.dart';
 import 'package:instaclone/presentations/screens/profile-screen/profile-screen.dart';
 import 'package:instaclone/presentations/screens/splash-screen/splash-screen.dart';
 import 'package:instaclone/presentations/screens/theme-mode.dart';
+import 'package:instaclone/presentations/widgets/homeScreen-widgets/app-bar-widget.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core/theme/app_theme.dart';
@@ -78,7 +80,8 @@ class MyApp extends StatelessWidget {
                   'profileScreen': (context) => ProfileScreen(),
                   'createPost':(context) => CreatePostScreen(),
                   'editProfileScreen': (context) => EditProfileScreen(),
-
+                  'homeScreen': (context) => CustomHomeScreenAppBar(),
+                  'mainScreen': (context) => MainScreen(),
                 },
               ),
             ),

@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> redirect() async {
     await Future.delayed(const Duration(seconds: 2));
     var token = cache.getData(key: 'auth_token');
-    Navigator.pushReplacementNamed(context, token != null? 'profileScreen':'login'
+    Navigator.pushReplacementNamed(context, token != null? 'mainScreen':'login'
     );
   }
 }
