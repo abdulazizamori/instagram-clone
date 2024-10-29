@@ -19,16 +19,19 @@ class PostsCubit extends Cubit<PostsState> {
   PostsCubit() : super(PostsInitial());
 
   // Function to create a post
+  // Function to create a post
   Future<void> createPost({
     required String uid,
     required String description,
     required bool isVideo,
     List<XFile>? mediaFiles,
+    required String userName,
+    required String userImage,
   }) async {
     try {
       emit(PostsLoading());
 
-      // Handle media upload (images or videos)
+      // Handle media upload
       List<String> mediaUrls = [];
       if (mediaFiles != null && mediaFiles.isNotEmpty) {
         for (XFile file in mediaFiles) {
@@ -37,7 +40,7 @@ class PostsCubit extends Cubit<PostsState> {
         }
       }
 
-      // Create the post document in Firestore under the user's subcollection
+      // Create the post document
       String postId = _firestore.collection('users').doc(uid).collection('userPosts').doc().id;
       PostModel newPost = PostModel(
         postId: postId,
@@ -48,10 +51,20 @@ class PostsCubit extends Cubit<PostsState> {
         likes: [],
         comments: [],
         isVideo: isVideo,
+        userName: userName,
+        userImage: userImage,
       );
 
-      // Add the new post to Firestore
+      // Add the new post to the user's subcollection
       await _firestore.collection('users').doc(uid).collection('userPosts').doc(postId).set(newPost.toMap());
+
+      // Add the new post to the main 'posts' collection
+      await _firestore.collection('posts').doc(postId).set(newPost.toMap());
+
+      // Increment the postsCount in the user's main document
+      await _firestore.collection('users').doc(uid).update({
+        'postsCount': FieldValue.increment(1),
+      });
 
       emit(PostCreatedSuccess(newPost));
     } catch (error) {
@@ -59,36 +72,56 @@ class PostsCubit extends Cubit<PostsState> {
     }
   }
 
-
-
-  // Function to like a post
-  Future<void> likePost(String postId, String userId) async {
+  // Function to like/unlike a post with instant UI update
+  Future<void> toggleLikePost(PostModel post, String userId) async {
     try {
-      DocumentReference postRef = _firestore.collection('posts').doc(postId);
-      await postRef.update({
-        'likes': FieldValue.arrayUnion([userId]),
-      });
-      emit(PostLikedSuccess());
+      // Check if the post is currently liked by the user
+      final isLiked = post.likes!.contains(userId);
+
+      // Update the local post model by toggling the like status
+      if (isLiked) {
+        post.likes!.remove(userId); // Remove user ID from likes
+      } else {
+        post.likes!.add(userId); // Add user ID to likes
+      }
+
+      // Reference to the Firestore document for the main posts collection
+      DocumentReference postRef = _firestore.collection('posts').doc(post.postId);
+
+      // Reference to the Firestore document in the user's subcollection
+      DocumentReference userPostRef = _firestore
+          .collection('users')
+          .doc(post.uid) // Assuming each post has a userId field
+          .collection('userPosts')
+          .doc(post.postId);
+
+      // Update the Firestore document accordingly in both collections
+      if (isLiked) {
+        await postRef.update({
+          'likes': FieldValue.arrayRemove([userId]), // Remove like from main posts collection
+        });
+        await userPostRef.update({
+          'likes': FieldValue.arrayRemove([userId]), // Remove like from userPosts subcollection
+        });
+      } else {
+        await postRef.update({
+          'likes': FieldValue.arrayUnion([userId]), // Add like to main posts collection
+        });
+        await userPostRef.update({
+          'likes': FieldValue.arrayUnion([userId]), // Add like to userPosts subcollection
+        });
+      }
+
     } catch (e) {
-      emit(PostsError('Failed to like post: $e'));
+      // Emit an error state if there's an issue
+      emit(PostsError('Failed to toggle like: $e'));
     }
   }
 
-  // Function to fetch all posts
-  Future<void> fetchPosts() async {
-    try {
-      emit(PostsLoading());
 
-      QuerySnapshot snapshot = await _firestore.collection('posts').get();
-      List<PostModel> posts = snapshot.docs.map((doc) {
-        return PostModel.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
 
-      emit(PostsLoaded(posts));
-    } catch (e) {
-      emit(PostsError('Failed to fetch posts: $e'));
-    }
-  }
+
+
 
   // Function to upload media (images/videos) to Firebase Storage
   Future<String> _uploadMedia(XFile file) async {
@@ -138,24 +171,24 @@ class PostsCubit extends Cubit<PostsState> {
 
 
   // Fetch all posts for the explore screen or global feed
-  Future<List<PostModel>> fetchAllPosts() async {
+  Future<void> fetchAllPosts() async {
     emit(PostsLoading());
     try {
       QuerySnapshot snapshot = await _firestore
           .collection('posts')
-          .orderBy('createdAt', descending: true) // Optional: Order by date
+          .orderBy('createdAt', descending: true) // Order by date
           .get();
 
       List<PostModel> posts = snapshot.docs.map((doc) {
         return PostModel.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
 
-      return posts;
+      emit(PostsLoaded(posts)); // Emit loaded state with posts
     } catch (e) {
-      emit(PostsError(e.toString()));
-      return [];
+      emit(PostsError(e.toString())); // Emit error state on failure
     }
   }
+
 
 // Fetch posts from users that the current user follows
   Future<List<PostModel>> fetchFollowedUsersPosts(String currentUserId) async {

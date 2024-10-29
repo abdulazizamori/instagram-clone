@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instaclone/data/sharedprefrence/cache.dart';
 import 'package:meta/meta.dart';
@@ -269,5 +270,6 @@ class AuthCubit extends Cubit<AuthState> {
           "Error fetching post count: ${error.toString()}")); // Emit error state
     }
   }
+
 
 }

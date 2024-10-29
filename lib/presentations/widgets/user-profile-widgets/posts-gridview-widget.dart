@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:instaclone/presentations/screens/profile-screen/detailed-post-screen.dart';
 import '../../../logic/posts-cubit/posts_cubit.dart';
 
 class PostsListView extends StatefulWidget {
@@ -43,7 +44,7 @@ class _PostsListViewState extends State<PostsListView> {
 
               return GestureDetector(
                 onTap: () {
-                  print('Tapped on post ${post.postId}');
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>DetailedPostScreen(postModel: userPosts, initIndex:index)));
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(2.0),

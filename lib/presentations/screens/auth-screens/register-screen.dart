@@ -40,19 +40,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   CustomTextField(
                     hint: 'Name',
-                    controller: name,
+                    controller: name, textFieldType: false,
                   ),
                   SizedBox(
                     height: 20,
                   ),
                   CustomTextField(
                     hint: 'Email',
-                    controller: email,
+                    controller: email, textFieldType: false,
                   ),
                   SizedBox(
                     height: 20,
                   ),
-                  CustomTextField(hint: 'Password', controller: password),
+                  CustomTextField(hint: 'Password', controller: password, textFieldType: true,),
                   SizedBox(
                     height: 20,
                   ),

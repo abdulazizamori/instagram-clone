@@ -43,12 +43,12 @@ class _LogInScreenState extends State<LogInScreen> {
                       ),
                       CustomTextField(
                         hint: 'Email',
-                        controller: email,
+                        controller: email, textFieldType: false,
                       ),
                       SizedBox(
                         height: 20,
                       ),
-                      CustomTextField(hint: 'Password', controller: password),
+                      CustomTextField(hint: 'Password', controller: password, textFieldType: true,),
                       SizedBox(
                         height: 20,
                       ),
@@ -81,7 +81,7 @@ class _LogInScreenState extends State<LogInScreen> {
         },
         listener: (context, state) {
           if (state is AuthSuccess) {
-            Navigator.pushReplacementNamed(context, 'profileScreen');
+            Navigator.pushReplacementNamed(context, 'mainScreen');
 
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(

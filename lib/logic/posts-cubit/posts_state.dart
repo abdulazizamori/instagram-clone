@@ -13,8 +13,6 @@ class PostCreatedSuccess extends PostsState {
   PostCreatedSuccess(this.post);
 }
 
-class PostLikedSuccess extends PostsState {}
-
 class PostsLoaded extends PostsState {
   final List<PostModel> posts;
 

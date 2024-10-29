@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   List<XFile>? mediaFiles = [];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +34,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               height: 300.h,
               child: IconButton(
                 onPressed: () async {
-                  final selectedFiles = await _picker.pickMultiImage(); // Select multiple images
+                  final selectedFiles =
+                      await _picker.pickMultiImage(); // Select multiple images
                   if (selectedFiles != null) {
                     setState(() {
-                      mediaFiles!.addAll(selectedFiles); // Add new files to the existing list
+                      mediaFiles!.addAll(
+                          selectedFiles); // Add new files to the existing list
                     });
                   }
                 },
@@ -45,22 +49,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             // Display selected images
             mediaFiles!.isNotEmpty
                 ? GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 1,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-              ),
-              itemCount: mediaFiles!.length,
-              itemBuilder: (context, index) {
-                return Image.file(
-                  File(mediaFiles![index].path),
-                  fit: BoxFit.cover,
-                );
-              },
-            )
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 1,
+                      crossAxisSpacing: 4,
+                      mainAxisSpacing: 4,
+                    ),
+                    itemCount: mediaFiles!.length,
+                    itemBuilder: (context, index) {
+                      return Image.file(
+                        File(mediaFiles![index].path),
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  )
                 : Container(), // Empty container if no images selected
 
             TextField(
@@ -69,27 +73,37 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             // Submit button to create post
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 String uid = FirebaseAuth.instance.currentUser!.uid;
                 String description = descriptionController.text;
-                bool isVideo = false; // Set this based on user selection if needed
+                bool isVideo =
+                    false; // Set this based on user selection if needed
+                // Fetch the user's username
+                DocumentSnapshot userSnapshot =
+                    await _firestore.collection('users').doc(uid).get();
+                String? username = userSnapshot['userName'];
+                String? userImage = userSnapshot['profilePicture'];
 
                 // Call the createPost function
                 context.read<PostsCubit>().createPost(
-                  uid: uid,
-                  description: description,
-                  isVideo: isVideo,
-                  mediaFiles: mediaFiles,
-                );
+                      uid: uid,
+                      description: description,
+                      isVideo: isVideo,
+                      mediaFiles: mediaFiles,
+                      userName: username!,
+                      userImage: userImage!,
+                    );
               },
               child: Text('Create Post'),
             ),
             BlocConsumer<PostsCubit, PostsState>(
               listener: (context, state) {
                 if (state is PostCreatedSuccess) {
-                  Navigator.pushReplacementNamed(context, 'profileScreen'); // Change '/profile' to your profile route
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Post created successfully')),
+                  );
+                  context.read<PostsCubit>().fetchUserPosts(FirebaseAuth.instance.currentUser!.uid);
                 } else if (state is PostsError) {
-                  // Handle error state
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.error)),
                   );

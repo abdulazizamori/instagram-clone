@@ -2,11 +2,14 @@ class PostModel {
   String? postId;
   String? uid;
   String? description;
-  List<String>? mediaUrls; // Images or video URLs
+  List<String>? mediaUrls;
   DateTime? createdAt;
-  List<String>? likes; // UIDs of users who liked the post
-  List<String>? comments; // List of comment IDs
+  List<String>? likes;
+  List<String>? comments;
   bool? isVideo;
+  String? userName;
+  String? userImage;
+  bool likePost;
 
   PostModel({
     this.postId,
@@ -17,6 +20,9 @@ class PostModel {
     this.likes,
     this.comments,
     this.isVideo,
+    this.userName,
+    this.userImage,
+    this.likePost = false,
   });
 
   // Convert to a map for Firestore storage
@@ -30,25 +36,42 @@ class PostModel {
       'likes': likes,
       'comments': comments,
       'isVideo': isVideo,
+      'userName': userName,
+      'userImage': userImage,
+      'likePost': likePost,
     };
   }
 
   // Create a PostModel from Firestore document
-  factory PostModel.fromMap(Map<String, dynamic> map) {
+  factory PostModel.fromMap(Map<String, dynamic> map, {String? currentUserId}) {
+    List<String> likesList = List<String>.from(map['likes'] ?? []);
+    bool isLikedByUser = likesList.contains(currentUserId);
+
     return PostModel(
       postId: map['postId'] ?? '',
       uid: map['uid'] ?? '',
       description: map['description'] ?? '',
       mediaUrls: List<String>.from(map['mediaUrls'] ?? []),
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : DateTime.now(),
-      likes: List<String>.from(map['likes'] ?? []),
+      likes: likesList,
       comments: List<String>.from(map['comments'] ?? []),
       isVideo: map['isVideo'] ?? false,
+      userName: map['userName'] ?? '',
+      userImage: map['userImage'] ?? '',
+      likePost: isLikedByUser,
     );
   }
-  @override
-  String toString() {
-    return 'PostModel{postId: $postId, uid: $uid, description: $description, mediaUrls: $mediaUrls, createdAt: $createdAt, likes: $likes, comments: $comments, isVideo: $isVideo}';
-  }
 
+  void toggleLike(String userId) {
+    if (likes == null) {
+      likes = [];
+    }
+    if (likePost) {
+      likes!.remove(userId);
+      likePost = false;
+    } else {
+      likes!.add(userId);
+      likePost = true;
+    }
+  }
 }

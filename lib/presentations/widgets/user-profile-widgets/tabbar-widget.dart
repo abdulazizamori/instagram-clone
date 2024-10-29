@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'posts-listview-widget.dart'; // Ensure this import is correct
+import 'posts-gridview-widget.dart'; // Ensure this import is correct
 
 class CustomTabBar extends StatefulWidget {
   const CustomTabBar({super.key});

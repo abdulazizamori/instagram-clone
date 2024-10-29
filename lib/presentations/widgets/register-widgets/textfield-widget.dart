@@ -5,8 +5,9 @@ import 'package:instaclone/main.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
+  final bool textFieldType;
   final String hint;
-  const CustomTextField({super.key, required this.hint, required this.controller});
+    CustomTextField({super.key, required this.hint, required this.controller,required this.textFieldType});
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +27,13 @@ class CustomTextField extends StatelessWidget {
             textAlign: TextAlign.start,
             decoration: InputDecoration(
               border: InputBorder.none,
+
               hintText: hint,
               hintStyle: TextStyle(
                 color: Theme.of(context).brightness == Brightness.light? Colors.black:Colors.white
-              )
+              ),
             ),
+            obscureText: textFieldType,
           ),
         ),
       ),
