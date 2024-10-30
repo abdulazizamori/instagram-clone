@@ -5,12 +5,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
 import 'package:instaclone/logic/storyCubit/story_cubit.dart';
 import '../../../data/models/story-model.dart';
-import '../../widgets/user-profile-widgets/circle-avatar-row-widget.dart';
-import '../../widgets/user-profile-widgets/column-of-texts-widget.dart';
-import '../../widgets/user-profile-widgets/custom-app-bar-widget.dart';
-import '../../widgets/user-profile-widgets/edit-profile-button-widget.dart';
-import '../../widgets/user-profile-widgets/listview-highlights.dart';
-import '../../widgets/user-profile-widgets/tabbar-widget.dart';
+import '../../widgets/profile-widgets/circle-avatar-row-widget.dart';
+import '../../widgets/profile-widgets/column-of-texts-widget.dart';
+import '../../widgets/profile-widgets/custom-app-bar-widget.dart';
+import '../../widgets/profile-widgets/edit-profile-button-widget.dart';
+import '../../widgets/profile-widgets/listview-highlights.dart';
+import '../../widgets/profile-widgets/tabbar-widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

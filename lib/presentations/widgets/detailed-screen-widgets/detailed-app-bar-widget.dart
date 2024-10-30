@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/data/models/user-model.dart';
+import 'package:instaclone/main.dart';
 
 import '../../../data/models/posts-model.dart';
 import '../../../logic/authCubit/auth_cubit.dart';
 
 class CustomDetailedAppBar extends StatefulWidget {
+  final String title;
 
-   CustomDetailedAppBar({super.key});
+   CustomDetailedAppBar({super.key, required this.title});
 
   @override
   State<CustomDetailedAppBar> createState() => _CustomDetailedAppBarState();
@@ -34,9 +37,7 @@ class _CustomDetailedAppBarState extends State<CustomDetailedAppBar> {
               Spacer(),
                  Column(
                   children: [
-                    state is UserInfoLoaded
-                    ?Text(state.userInfo.userName.toString(),style: TextStyle(fontWeight: FontWeight.w800,color:Colors.grey,fontSize:16 ,letterSpacing: 1),):SizedBox(),
-                    Text('Posts',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),)
+                    Text(widget.title,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18.sp),)
                   ],
                 ),
               Spacer(),

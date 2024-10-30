@@ -14,7 +14,7 @@ class DetailedPostScreen extends StatelessWidget {
         child: Scaffold(
       body: Column(
         children: [
-          CustomDetailedAppBar(),
+          CustomDetailedAppBar(title: 'Posts',),
           Divider(),
           DetailedListView(postModel: postModel, initIndex: initIndex,),
 

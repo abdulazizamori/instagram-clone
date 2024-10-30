@@ -113,7 +113,7 @@ class _StoriesWidgetState extends State<StoriesWidget> {
                           const Spacer(),
                           Text(
                             'Your Story',
-                            style: TextStyle(fontSize: 12.sp),
+                            style: TextStyle(fontSize: 10.sp),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

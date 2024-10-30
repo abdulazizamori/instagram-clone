@@ -249,6 +249,41 @@ class AuthCubit extends Cubit<AuthState> {
       print("Error fetching user info: ${error.toString()}"); // Log message
     }
   }
+  /// Fetch all users from the 'users' collection
+  Future<void> fetchAllUsers() async {
+    emit(FetchUsersLoading()); // Emit loading state
+
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('users').get();
+      List<UserModel> users = querySnapshot.docs
+          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+
+      emit(FetchUsersSuccess(users)); // Emit success state with users list
+    } catch (e) {
+      emit(FetchUsersError('Failed to fetch users: ${e.toString()}')); // Emit error state
+    }
+  }
+
+  Future<void> searchUsers(String query) async {
+    emit(FetchUsersLoading());
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('userName', isGreaterThanOrEqualTo: query)
+          .where('userName', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
+
+      List<UserModel> users = snapshot.docs
+          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+
+      emit(FetchUsersSuccess(users));
+    } catch (e) {
+      emit(FetchUsersError(e.toString()));
+    }
+  }
+
 
   Future<void> fetchUserPostsCount(String userId) async {
     emit(UserInfoLoading()); // Emit loading state

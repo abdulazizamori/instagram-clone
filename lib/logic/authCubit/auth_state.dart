@@ -22,19 +22,19 @@ final class AuthSuccess extends AuthState{
 
 final class AuthFailed extends AuthState{}
 
-class AuthError extends AuthState {
+final class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
 }
 
-class UploadLoading extends AuthState {}
+final class UploadLoading extends AuthState {}
 
-class UploadSuccess extends AuthState {
+final class UploadSuccess extends AuthState {
   final String imageUrl;
   UploadSuccess(this.imageUrl);
 }
 
-class UploadError extends AuthState {
+final class UploadError extends AuthState {
   final String message;
   UploadError(this.message);
 }
@@ -58,20 +58,30 @@ class SignOut extends AuthState {}
 
 final class UserInfoUpdated extends AuthState{}
 
-class UserInfoPostsCountLoaded extends AuthState {
+final class UserInfoPostsCountLoaded extends AuthState {
   final int postsCount;
 
   UserInfoPostsCountLoaded(this.postsCount);
 }
 
-class ImageSelected extends AuthState {
+final class ImageSelected extends AuthState {
   final XFile image;
 
   ImageSelected(this.image);
 }
 
-class ImageSelectionError extends AuthState {
+final class ImageSelectionError extends AuthState {
   final String message;
 
   ImageSelectionError(this.message);
+}
+
+final class FetchUsersLoading extends AuthState {}
+final class FetchUsersSuccess extends AuthState {
+  final List<UserModel> users;
+  FetchUsersSuccess(this.users);
+}
+final class FetchUsersError extends AuthState {
+  final String error;
+  FetchUsersError(this.error);
 }

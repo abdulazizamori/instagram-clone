@@ -14,6 +14,8 @@ import 'package:instaclone/logic/themeCubit/theme-cubit.dart';
 import 'package:instaclone/logic/user-detailsCubit/user_details_cubit.dart';
 import 'package:instaclone/main-screen.dart';
 import 'package:instaclone/presentations/screens/auth-screens/login-screen.dart';
+import 'package:instaclone/presentations/screens/explorer-screen/explorer-screen.dart';
+import 'package:instaclone/presentations/screens/explorer-screen/search-users-screen.dart';
 import 'package:instaclone/presentations/screens/profile-screen/addpost.dart';
 import 'package:instaclone/presentations/screens/profile-screen/edit-profile-screen.dart';
 import 'package:instaclone/presentations/screens/profile-screen/profile-screen.dart';
@@ -82,6 +84,8 @@ class MyApp extends StatelessWidget {
                   'editProfileScreen': (context) => EditProfileScreen(),
                   'homeScreen': (context) => CustomHomeScreenAppBar(),
                   'mainScreen': (context) => MainScreen(),
+                  'explorerScreen':(context) => ExplorerScreen(),
+                  'searchUserScreen': (context) => SearchUsersScreen(),
                 },
               ),
             ),
