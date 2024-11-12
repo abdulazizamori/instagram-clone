@@ -1,105 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../data/models/message-model.dart';
 import '../../../logic/chat-cubit/chat_cubit.dart';
+import '../../widgets/chat-screen-widgets/app-bar-widget.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   final String senderId;
   final String receiverId;
-  final TextEditingController _controller = TextEditingController();
 
   ChatScreen({required this.senderId, required this.receiverId});
 
   @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_textListener);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_textListener);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // Listener function for the controller
+  void _textListener() {
+    // No need to call setState here; the UI will automatically rebuild only when necessary
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Loading messages directly from the existing `ChatCubit` instance
-    context.read<ChatCubit>().loadMessages(senderId, receiverId);
+    context.read<ChatCubit>().loadMessages(widget.senderId, widget.receiverId);
 
-    return Scaffold(
-
-      body: Column(
-        children: [
-          Row(children: [],),
-          Expanded(
-            child: BlocConsumer<ChatCubit, ChatState>(
-              listener: (context, state) {
-                if (state is ChatError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.errorMessage)),
-                  );
-                }
-              },
-              builder: (context, state) {
-                if (state is ChatInitial) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (state is ChatLoaded) {
-                  final messages = state.messages;
-
-                  if (messages.isEmpty) {
-                    return Center(child: Text("No messages yet. Start chatting!"));
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+          children: [
+            ChatAppBarWidget(friendid: widget.receiverId),
+            Expanded(
+              child: BlocConsumer<ChatCubit, ChatState>(
+                listener: (context, state) {
+                  if (state is ChatError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.errorMessage)),
+                    );
                   }
+                },
+                builder: (context, state) {
+                  if (state is ChatInitial) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (state is ChatLoaded) {
+                    final messages = state.messages;
 
-                  return ListView.builder(
-                    reverse: true, // Show latest messages at the bottom
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      final isMe = message.senderId == senderId;
+                    if (messages.isEmpty) {
+                      return Center(child: Text("No messages yet. Start chatting!"));
+                    }
 
-                      return Align(
-                        alignment:
-                        isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          margin: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isMe ? Colors.blue[100] : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(12),
+                    return ListView.builder(
+                      reverse: true, // Show latest messages at the bottom
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final isMe = message.senderId == widget.senderId;
+
+                        return Align(
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isMe ? Colors.blue[100] : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(message.message),
                           ),
-                          child: Text(message.message),
-                        ),
-                      );
-                    },
-                  );
-                } else if (state is ChatError) {
-                  return Center(child: Text("Failed to load messages."));
-                } else {
-                  return Center(child: Text("Something went wrong!"));
-                }
-              },
+                        );
+                      },
+                    );
+                  } else if (state is ChatError) {
+                    return Center(child: Text("Failed to load messages."));
+                  } else {
+                    return Center(child: Text("Something went wrong!"));
+                  }
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(hintText: "Enter a message"),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(40),
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.grey.withOpacity(0.2)
+                        : Colors.grey.withOpacity(0.5)),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 2.0, right: 15),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 20.w,
+                        height: 20.h,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: Colors.blue),
+                        child: Center(
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          decoration: InputDecoration(
+                              hintText: "Message...", border: InputBorder.none),
+                        ),
+                      ),
+                      // Use ValueListenableBuilder to update the UI when text changes
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _controller,
+                        builder: (context, text, child) {
+                          return text.text.isNotEmpty
+                              ? IconButton(
+                            icon: Icon(Icons.send),
+                            onPressed: () {
+                              if (_controller.text.trim().isNotEmpty) {
+                                final message = MessageModel(
+                                  senderId: widget.senderId,
+                                  receiverId: widget.receiverId,
+                                  message: _controller.text.trim(),
+                                  timestamp: DateTime.now(),
+                                );
+                                context.read<ChatCubit>().sendMessage(message);
+                                _controller.clear();
+                              }
+                            },
+                          )
+                              : Row(
+                            children: [
+                              Icon(Icons.mic_none_outlined),
+                              SizedBox(width: 5.w),
+                              Icon(Icons.photo_size_select_actual_outlined),
+                              SizedBox(width: 5.w),
+                              Icon(Icons.sticky_note_2_outlined),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: () {
-                    if (_controller.text.trim().isNotEmpty) {
-                      final message = MessageModel(
-                        senderId: senderId,
-                        receiverId: receiverId,
-                        message: _controller.text.trim(),
-                        timestamp: DateTime.now(),
-                      );
-                      context.read<ChatCubit>().sendMessage(message);
-                      _controller.clear();
-                    }
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
