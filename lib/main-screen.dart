@@ -26,6 +26,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: pages[currentPage],
       bottomNavigationBar: BottomNavigationBar(
+        type:BottomNavigationBarType.fixed,
         backgroundColor: Theme.of(context).brightness == Brightness.light
             ? Colors.white
             : Colors.black,
@@ -62,6 +63,7 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(currentPage==3?Icons.person: Icons.person_outline, size: 28),
           ),
         ],
+
       ),
     );
   }

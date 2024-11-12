@@ -2,7 +2,9 @@
   "project_info": {
     "project_number": "764738369702",
     "project_id": "instaclone-c44fd",
-    "storage_bucket": "instaclone-c44fd.appspot.com"
+    "storage_bucket": "instaclone-c44fd.appspot.com",
+    "firebase_url": "https://instaclone-c44fd-default-rtdb.europe-west1.firebasedatabase.app"
+
   },
   "client": [
     {

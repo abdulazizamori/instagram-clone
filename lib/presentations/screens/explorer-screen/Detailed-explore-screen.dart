@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:instaclone/data/models/posts-model.dart';
 import '../../widgets/detailed-screen-widgets/detailed-app-bar-widget.dart';
-import '../../widgets/explorer-widgets/detailed-explore-listview-widget.dart';
+import '../../widgets/explorer-screen-widgets/detailed-explore-listview-widget.dart';
 
 class DetailedExploreScreen extends StatelessWidget {
   final List<PostModel> postModel;

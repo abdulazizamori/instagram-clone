@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/posts-cubit/posts_cubit.dart';
-
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:video_player/video_player.dart';
 import '../../../data/models/posts-model.dart';
 
 class CustomPostsListview extends StatefulWidget {
@@ -14,11 +15,33 @@ class CustomPostsListview extends StatefulWidget {
 }
 
 class _CustomPostsListviewState extends State<CustomPostsListview> {
+  late ItemScrollController itemScrollController;
+  late ItemPositionsListener itemPositionsListener;
+  int _visibleIndex = 0;
+
+
   @override
   void initState() {
     super.initState();
     // Fetch posts when the widget initializes
     context.read<PostsCubit>().fetchAllPosts();
+
+    itemScrollController = ItemScrollController();
+    itemPositionsListener = ItemPositionsListener.create();
+
+    // Add listener to track visible indices
+    itemPositionsListener.itemPositions.addListener(() {
+      final visibleItems = itemPositionsListener.itemPositions.value
+          .where((position) => position.itemTrailingEdge > 0 && position.itemLeadingEdge < 1)
+          .map((position) => position.index)
+          .toList();
+
+      if (visibleItems.isNotEmpty && _visibleIndex != visibleItems.first) {
+        setState(() {
+          _visibleIndex = visibleItems.first;
+        });
+      }
+    });
   }
 
   @override
@@ -50,16 +73,20 @@ class _CustomPostsListviewState extends State<CustomPostsListview> {
                   children: [
                     PostHeader(post: post),
                     SizedBox(height: 10.h),
-                    PostImage(post: post),
+                    post.isVideo == true
+                        ? VideoPlayerWidget(url: post.mediaUrls!.first, isVisible: _visibleIndex == index, onDoubleTap: () {  setState(() {
+                      cubit.toggleLikePost(post, uid);
+                    }); },)
+                        : PostImage(post: post, onDoubleTap: () { setState(() {
+                      cubit.toggleLikePost(post, uid);
+                    }); },),
                     PostActions(
                       post: post,
                       uid: uid,
                       onLikeToggle: () {
                         setState(() {
-                          final liked = post.likes?.contains(uid) ?? false;
                           cubit.toggleLikePost(post, uid);
                         });
-
                       },
                     ),
                     PostLikesCount(post: post),
@@ -78,6 +105,93 @@ class _CustomPostsListviewState extends State<CustomPostsListview> {
       listener: (context, state) {
         print('Current State: $state'); // Log the state
       },
+    );
+  }
+}
+
+class VideoPlayerWidget extends StatefulWidget {
+  final String url;
+  final bool isVisible; // Add this parameter
+  final GestureTapCallback onDoubleTap;
+
+  const VideoPlayerWidget({Key? key, required this.url, required this.isVisible, required this.onDoubleTap}) : super(key: key);
+
+  @override
+  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.url)
+      ..initialize().then((_) {
+        setState(() {}); // Ensure the first frame is shown after the video is initialized
+      });
+  }
+
+  @override
+  void didUpdateWidget(VideoPlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isVisible) {
+      _controller.play();
+    } else {
+      _controller.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _controller.value.isInitialized
+        ? GestureDetector(
+      onDoubleTap: widget.onDoubleTap,
+          child: FittedBox(
+                fit: BoxFit.cover, // This makes the video cover the container
+                child: SizedBox(
+          width: 390.w,
+          height: 390.w,
+          child: VideoPlayer(_controller),
+                ),
+              ),
+        )
+        : Container(
+      height: 390.h,
+      width: 390.w,
+      color: Colors.black,
+      child: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+
+class PostImage extends StatelessWidget {
+  final PostModel post;
+  final GestureTapCallback onDoubleTap;
+
+  const PostImage({required this.post, required this.onDoubleTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onDoubleTap: onDoubleTap,
+      child: Container(
+        height: 390.h,
+        width: 390.w,
+        child: Image.network(
+          post.mediaUrls?.isNotEmpty == true
+              ? post.mediaUrls!.first
+              : 'https://via.placeholder.com/390',
+          fit: BoxFit.fill,
+        ),
+      ),
     );
   }
 }
@@ -113,26 +227,6 @@ class PostHeader extends StatelessWidget {
   }
 }
 
-class PostImage extends StatelessWidget {
-  final PostModel post;
-
-  const PostImage({required this.post});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 390.h,
-      width: 390.w,
-      child: Image.network(
-        post.mediaUrls?.isNotEmpty == true
-            ? post.mediaUrls!.first
-            : 'https://via.placeholder.com/390',
-        fit: BoxFit.fill,
-      ),
-    );
-  }
-}
-
 class PostActions extends StatelessWidget {
   final PostModel post;
   final String uid;
@@ -155,17 +249,45 @@ class PostActions extends StatelessWidget {
           GestureDetector(
             child: Icon(
               isLiked ? Icons.favorite : Icons.favorite_border,
-              color: isLiked ? Colors.red : (Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white),
-              size: 20.sp,
+              color: isLiked
+                  ? Colors.red
+                  : (Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white),
+              size: 20.w,
             ),
             onTap: onLikeToggle,
           ),
           SizedBox(width: 10.w),
-          Icon(Icons.comment, size: 20),
+          Image.asset(
+            'assets/icons/comment.png',
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+            width: 20.w,
+            height: 20.h,
+            fit: BoxFit.fill,
+          ),
           SizedBox(width: 10.w),
-          Icon(Icons.send, size: 20),
+          Image.asset(
+            'assets/icons/send.png',
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+            width: 20.w,
+            height: 20.h,
+            fit: BoxFit.fill,
+          ),
           Spacer(),
-          Icon(Icons.bookmark, size: 20),
+          Image.asset(
+            'assets/icons/save.png',
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+            width: 20.w,
+            height: 20.h,
+            fit: BoxFit.fill,
+          ),
         ],
       ),
     );

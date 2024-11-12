@@ -1,20 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserModel {
-  String? uid; // User ID (matches Firebase Auth UID)
-  String? userName; // Username
-  String? name; // Full name
-  String? email; // Email address
-  String? website; // User's website
-  String? bio; // User's bio
-  String? gender; // User's gender
-  String? profilePicture; // URL for the profile picture
-  String? phone; // User's phone number
-  List<String>? followers; // List of user IDs following this user
-  List<String>? following; // List of user IDs this user is following
-  bool? isVerified; // Verification status
-  DateTime? createdAt; // Account creation timestamp
-  DateTime? lastUpdated; // Last profile update timestamp
-  List<String>? favorites; // List of post IDs that the user has favorited
-  int postsCount; // Number of posts the user has
+  String? uid;
+  String? userName;
+  String? name;
+  String? email;
+  String? website;
+  String? bio;
+  String? gender;
+  String? profilePicture;
+  String? phone;
+  List<String>? followers;
+  List<String>? following;
+  bool? isVerified;
+  DateTime? createdAt;
+  DateTime? lastUpdated;
+  List<String>? favorites;
+  int postsCount;
+  int followersCount;
+  int followingCount;
+  List<String>? participants; // List of active chat IDs
+  Map<String, dynamic>? lastMessages; // Last messages by chat ID
 
   UserModel({
     this.uid,
@@ -25,17 +31,22 @@ class UserModel {
     this.bio,
     this.gender,
     this.profilePicture,
+    this.phone,
     this.followers,
     this.following,
     this.isVerified,
     DateTime? createdAt,
     DateTime? lastUpdated,
     this.favorites,
-    this.postsCount = 0, // Default value for postsCount
-    this.phone,
-  })  : createdAt = createdAt ?? DateTime.now(), // Default to now if not provided
-        lastUpdated = lastUpdated ?? DateTime.now(); // Default to now if not provided
+    this.postsCount = 0,
+    this.followersCount = 0,
+    this.followingCount = 0,
+    this.participants,
+    this.lastMessages,
+  })  : createdAt = createdAt ?? DateTime.now(),
+        lastUpdated = lastUpdated ?? DateTime.now();
 
+  // Converts UserModel instance to a Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -53,10 +64,15 @@ class UserModel {
       'lastUpdated': lastUpdated?.millisecondsSinceEpoch,
       'favorites': favorites,
       'postsCount': postsCount,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'phone': phone,
+      'participants': participants,
+      'lastMessages': lastMessages,
     };
   }
 
+  // Factory method to create UserModel from Map data
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       uid: map['uid'],
@@ -66,19 +82,23 @@ class UserModel {
       website: map['website'],
       bio: map['bio'],
       gender: map['gender'],
-      phone: map['phone'],
       profilePicture: map['profilePicture'],
+      phone: map['phone'],
       followers: List<String>.from(map['followers'] ?? []),
       following: List<String>.from(map['following'] ?? []),
       isVerified: map['isVerified'],
       createdAt: map['createdAt'] is int
           ? DateTime.fromMillisecondsSinceEpoch(map['createdAt'])
-          : map['createdAt']?.toDate(), // Handle Firestore Timestamp
+          : map['createdAt']?.toDate(),
       lastUpdated: map['lastUpdated'] is int
           ? DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'])
-          : map['lastUpdated']?.toDate(), // Handle Firestore Timestamp
+          : map['lastUpdated']?.toDate(),
       favorites: List<String>.from(map['favorites'] ?? []),
       postsCount: map['postsCount'] ?? 0,
+      followersCount: map['followersCount'] ?? 0,
+      followingCount: map['followingCount'] ?? 0,
+      participants: List<String>.from(map['participants'] ?? []),
+      lastMessages: Map<String, dynamic>.from(map['lastMessages'] ?? {}),
     );
   }
 }

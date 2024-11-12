@@ -66,11 +66,11 @@ class _CustomTabBarState extends State<CustomTabBar> {
               children: [
                 PostsListView(), // Your posts list view widget
                 Container(
-                  color: Colors.red,
+                  color: Colors.transparent,
                   child: Icon(Icons.add),
                 ),
                 Container(
-                  color: Colors.red,
+                  color: Colors.transparent,
                   child: Icon(Icons.add),
                 ),
               ],

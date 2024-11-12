@@ -11,7 +11,7 @@ class CustomSearchBar extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 15.0),
         child: Container(
             decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.light
@@ -19,7 +19,7 @@ class CustomSearchBar extends StatelessWidget {
                     : Colors.grey.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12)),
             width: MediaQuery.of(context).size.width,
-            height: 25.h,
+            height: 30.h,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(

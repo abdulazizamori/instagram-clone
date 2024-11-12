@@ -6,9 +6,11 @@ import 'package:instaclone/presentations/screens/auth-screens/register-screen.da
 import 'package:instaclone/presentations/screens/theme-mode.dart';
 import 'package:instaclone/shared/widgets/logo-widget.dart';
 
-import '../../widgets/register-widgets/elevated-button-widget.dart';
-import '../../widgets/register-widgets/text-button-widget.dart';
-import '../../widgets/register-widgets/textfield-widget.dart';
+import '../../widgets/register-screen-widgets/elevated-button-widget.dart';
+import '../../widgets/register-screen-widgets/text-button-widget.dart';
+import '../../widgets/register-screen-widgets/textfield-widget.dart';
+
+
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});

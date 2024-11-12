@@ -36,10 +36,15 @@ class CustomHomeScreenAppBar extends StatelessWidget {
         Container(
           width: 30,
           height: 30,
-          child: Image.asset('assets/icons/direct.png',color:Theme.of(context).brightness == Brightness.light
-              ? Colors.black
-              : Colors.white,
-          fit: BoxFit.fill,),
+          child: GestureDetector(
+            onTap: (){
+              Navigator.pushNamed(context, 'directScreen');
+            },
+            child: Image.asset('assets/icons/direct.png',color:Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+            fit: BoxFit.fill,),
+          ),
         ),
         SizedBox(width: 30,),
 

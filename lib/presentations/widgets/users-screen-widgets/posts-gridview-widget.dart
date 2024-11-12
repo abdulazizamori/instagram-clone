@@ -4,21 +4,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:instaclone/presentations/screens/profile-screen/detailed-post-screen.dart';
 import '../../../logic/posts-cubit/posts_cubit.dart';
 
-class PostsListView extends StatefulWidget {
-  const PostsListView({Key? key}) : super(key: key);
+class UserPostsGridView extends StatefulWidget {
+  final String userId;
+
+  const UserPostsGridView({Key? key, required this.userId}) : super(key: key);
 
   @override
-  _PostsListViewState createState() => _PostsListViewState();
+  _UserPostsGridViewState createState() => _UserPostsGridViewState();
 }
 
-class _PostsListViewState extends State<PostsListView> {
+class _UserPostsGridViewState extends State<UserPostsGridView> {
   @override
   void initState() {
     super.initState();
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      print("Fetching posts for user: $userId");
-      context.read<PostsCubit>().fetchUserPosts(userId);
+    if (widget.userId != null) {
+      print("Fetching posts for user: ${widget.userId}");
+      context.read<PostsCubit>().fetchUserPosts(widget.userId);
     } else {
       print("No user is currently logged in.");
     }

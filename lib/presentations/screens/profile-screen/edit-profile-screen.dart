@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../logic/authCubit/auth_cubit.dart';
-import '../../widgets/edit-profile-widgets/edit-profile-app-bar-widget.dart';
+import '../../widgets/editprofile-screen-widgets/edit-profile-app-bar-widget.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});

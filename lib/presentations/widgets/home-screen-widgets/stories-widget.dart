@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
-import 'package:instaclone/presentations/widgets/homeScreen-widgets/story-detailed-view-screen.dart';
+import 'package:instaclone/presentations/widgets/home-screen-widgets/story-detailed-view-screen.dart';
 import '../../../logic/storyCubit/story_cubit.dart';
 import '../../screens/home-screen/add-story-screen.dart';
 

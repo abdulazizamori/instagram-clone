@@ -85,3 +85,39 @@ final class FetchUsersError extends AuthState {
   final String error;
   FetchUsersError(this.error);
 }
+class FollowUserLoading extends AuthState {}
+
+class FollowUserSuccess extends AuthState {
+  final String targetUserId;
+  final int followingCount; // Track following count
+  FollowUserSuccess(this.targetUserId, this.followingCount);
+}
+
+class UnfollowUserSuccess extends AuthState {
+  final String userId;
+  final int followersCount; // Track new followers count
+  UnfollowUserSuccess(this.userId, this.followersCount);
+}
+
+class FollowError extends AuthState {
+  final String message;
+  FollowError(this.message);
+}
+
+class FetchUserLoading extends AuthState {}
+
+class FetchUserSuccess extends AuthState {
+  final UserModel user;
+  FetchUserSuccess(this.user);
+}
+
+class FetchUserError extends AuthState {
+  final String message;
+  FetchUserError(this.message);
+}
+class UserUpdated extends AuthState {
+  final UserModel userModel;
+
+  UserUpdated(this.userModel);
+}
+

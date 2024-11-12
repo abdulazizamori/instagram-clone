@@ -3,7 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/main.dart';
 import 'package:instaclone/data/models/story-model.dart';
 
-import '../homeScreen-widgets/story-detailed-view-screen.dart'; // Import your story view screen
+import '../home-screen-widgets/story-detailed-view-screen.dart';
+
 
 class CustomListViewHighLights extends StatefulWidget {
   final List<StoryModel> userStories; // Assuming this is passed to the widget

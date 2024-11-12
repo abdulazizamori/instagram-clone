@@ -21,11 +21,11 @@ class AuthCubit extends Cubit<AuthState> {
   String? errorMessage;
   bool verified = false;
   String? _downloadUrl;
-
   String? get downloadUrl => _downloadUrl;
   final ImagePicker picker = ImagePicker();
   String? uploadedImageUrl;
   var cache = CacheHelper();
+  UserModel? userModel;
 
   // Function to pick a single image for profile picture
   Future<void> pickImage() async {
@@ -101,6 +101,8 @@ class AuthCubit extends Cubit<AuthState> {
         lastUpdated: DateTime.now(),
         favorites: [],
         postsCount: 0,
+        participants: []
+
       );
 
       await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
@@ -254,7 +256,14 @@ class AuthCubit extends Cubit<AuthState> {
     emit(FetchUsersLoading()); // Emit loading state
 
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection('users').get();
+      final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Query all users except the current user
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('uid', isNotEqualTo: currentUserId) // Exclude current user
+          .get();
+
       List<UserModel> users = querySnapshot.docs
           .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
@@ -264,6 +273,184 @@ class AuthCubit extends Cubit<AuthState> {
       emit(FetchUsersError('Failed to fetch users: ${e.toString()}')); // Emit error state
     }
   }
+
+
+  /// Update user profile fields
+  // Future<void> updateUserProfile({
+  //   required String name,
+  //   required String userName,
+  //   required String website,
+  //   required String bio,
+  //   required String email,
+  //   required String gender,
+  //   required String phone,
+  // }) async {
+  //   try {
+  //     emit(AuthLoading());
+  //
+  //     User? currentUser = _auth.currentUser;
+  //     if (currentUser != null) {
+  //       Map<String, dynamic> updatedData = {
+  //         'name': name,
+  //         'userName': userName,
+  //         'website': website,
+  //         'bio': bio,
+  //         'email': email,
+  //         'gender': gender,
+  //         'phone': phone,
+  //         'lastUpdated': DateTime.now(),
+  //       };
+  //
+  //       // Update the user document in Firestore
+  //       await _firestore.collection('users').doc(currentUser.uid).update(updatedData);
+  //
+  //       emit(AuthSuccess("User profile updated successfully"));
+  //     } else {
+  //       emit(AuthError('No user is signed in'));
+  //     }
+  //   } catch (e) {
+  //     emit(AuthError('Error updating user profile: $e'));
+  //   }
+  // }
+
+// Function to follow a user and update followers/following counts
+  Future<void> followUser(String targetUserId) async {
+    final currentUserId = _auth.currentUser?.uid;
+
+    if (currentUserId == null) {
+      emit(AuthError("User not logged in."));
+      return;
+    }
+
+    try {
+      emit(AuthLoading());
+
+      final currentUserRef = _firestore.collection('users').doc(currentUserId);
+      final targetUserRef = _firestore.collection('users').doc(targetUserId);
+
+      // Start a batch write operation to ensure consistency
+      await _firestore.runTransaction((transaction) async {
+        // Fetch current user and target user data
+        final currentUserDoc = await transaction.get(currentUserRef);
+        final targetUserDoc = await transaction.get(targetUserRef);
+
+        // Update current user's following list
+        final currentUserData = currentUserDoc.data() as Map<String, dynamic>;
+        final following = List<String>.from(currentUserData['following'] ?? []);
+        int followingCount = currentUserData['followingCount'] ?? 0; // Get initial following count
+
+        if (!following.contains(targetUserId)) {
+          following.add(targetUserId);
+          transaction.update(currentUserRef, {
+            'following': following,
+            'followingCount': followingCount + 1 // Increment following count
+          });
+        }
+
+        // Update target user's followers list
+        final targetUserData = targetUserDoc.data() as Map<String, dynamic>;
+        final followers = List<String>.from(targetUserData['followers'] ?? []);
+        int followersCount = targetUserData['followersCount'] ?? 0; // Get initial followers count
+
+        if (!followers.contains(currentUserId)) {
+          followers.add(currentUserId);
+          transaction.update(targetUserRef, {
+            'followers': followers,
+            'followersCount': followersCount + 1 // Increment followers count
+          });
+        }
+      });
+
+      // Update local user model
+      userModel!.following ??= [];
+      if (!userModel!.following!.contains(targetUserId)) {
+        userModel!.following!.add(targetUserId);
+      }
+
+      emit(FollowUserSuccess(targetUserId, userModel!.following!.length)); // Emit with updated following count
+      emit(UserUpdated(userModel!)); // Emit updated state
+    } catch (e) {
+      emit(AuthError("Failed to follow user: $e"));
+    }
+  }
+
+// Function to unfollow a user and update followers/following counts
+  Future<void> unfollowUser(String targetUserId) async {
+    final currentUserId = _auth.currentUser?.uid;
+
+    if (currentUserId == null) {
+      emit(AuthError("User not logged in."));
+      return;
+    }
+
+    try {
+      emit(AuthLoading());
+
+      final currentUserRef = _firestore.collection('users').doc(currentUserId);
+      final targetUserRef = _firestore.collection('users').doc(targetUserId);
+
+      // Start a batch write operation to ensure consistency
+      await _firestore.runTransaction((transaction) async {
+        // Fetch current user and target user data
+        final currentUserDoc = await transaction.get(currentUserRef);
+        final targetUserDoc = await transaction.get(targetUserRef);
+
+        // Update current user's following list
+        final currentUserData = currentUserDoc.data() as Map<String, dynamic>;
+        final following = List<String>.from(currentUserData['following'] ?? []);
+        int followingCount = currentUserData['followingCount'] ?? 0; // Get initial following count
+
+        if (following.contains(targetUserId)) {
+          following.remove(targetUserId);
+          transaction.update(currentUserRef, {
+            'following': following,
+            'followingCount': followingCount - 1 // Decrement following count
+          });
+        }
+
+        // Update target user's followers list
+        final targetUserData = targetUserDoc.data() as Map<String, dynamic>;
+        final followers = List<String>.from(targetUserData['followers'] ?? []);
+        int followersCount = targetUserData['followersCount'] ?? 0; // Get initial followers count
+
+        if (followers.contains(currentUserId)) {
+          followers.remove(currentUserId);
+          transaction.update(targetUserRef, {
+            'followers': followers,
+            'followersCount': followersCount - 1 // Decrement followers count
+          });
+        }
+      });
+
+      // Update local user model
+      userModel!.following?.remove(targetUserId);
+      emit(UnfollowUserSuccess(targetUserId, userModel!.following!.length)); // Emit with updated following count
+      emit(UserUpdated(userModel!)); // Emit updated state
+    } catch (e) {
+      emit(AuthError("Failed to unfollow user: $e"));
+    }
+  }
+
+
+  /// Function to fetch a user's information by UID
+  Future<void> fetchUser(String userId) async {
+    emit(FetchUserLoading());
+
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+
+      if (userDoc.exists) {
+        // Assuming UserModel has a factory constructor to convert from Map
+        final user = UserModel.fromMap(userDoc.data()!);
+        emit(FetchUserSuccess(user));
+      } else {
+        emit(FetchUserError("User not found."));
+      }
+    } catch (e) {
+      emit(FetchUserError("Failed to fetch user: $e"));
+    }
+  }
+
 
   Future<void> searchUsers(String query) async {
     emit(FetchUsersLoading());

@@ -8,12 +8,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
+import 'package:instaclone/logic/chat-cubit/chat_cubit.dart';
 import 'package:instaclone/logic/posts-cubit/posts_cubit.dart';
 import 'package:instaclone/logic/storyCubit/story_cubit.dart';
 import 'package:instaclone/logic/themeCubit/theme-cubit.dart';
-import 'package:instaclone/logic/user-detailsCubit/user_details_cubit.dart';
 import 'package:instaclone/main-screen.dart';
 import 'package:instaclone/presentations/screens/auth-screens/login-screen.dart';
+import 'package:instaclone/presentations/screens/chat-screens/direct-screen.dart';
 import 'package:instaclone/presentations/screens/explorer-screen/explorer-screen.dart';
 import 'package:instaclone/presentations/screens/explorer-screen/search-users-screen.dart';
 import 'package:instaclone/presentations/screens/profile-screen/addpost.dart';
@@ -21,9 +22,8 @@ import 'package:instaclone/presentations/screens/profile-screen/edit-profile-scr
 import 'package:instaclone/presentations/screens/profile-screen/profile-screen.dart';
 import 'package:instaclone/presentations/screens/splash-screen/splash-screen.dart';
 import 'package:instaclone/presentations/screens/theme-mode.dart';
-import 'package:instaclone/presentations/widgets/homeScreen-widgets/app-bar-widget.dart';
+import 'package:instaclone/presentations/widgets/home-screen-widgets/app-bar-widget.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'core/theme/app_theme.dart';
 import 'data/sharedprefrence/cache.dart';
 import 'firebase_options.dart';
@@ -37,9 +37,12 @@ void main() async {
         ? HydratedStorage.webStorageDirectory
         : await getApplicationDocumentsDirectory(),
   );
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Firebase only if not already initialized
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   await FirebaseAppCheck.instance.activate(
     webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
     androidProvider: AndroidProvider.debug,
@@ -59,9 +62,10 @@ class MyApp extends StatelessWidget {
             providers: [
               BlocProvider(create: (context) => ThemeCubit()),
               BlocProvider(create: (context) => AuthCubit()),
-              BlocProvider(create: (context) => UserDetailsCubit()),
               BlocProvider(create: (context) => PostsCubit()),
               BlocProvider(create: (context) => StoryCubit()),
+              BlocProvider(create: (context) => ChatCubit()),
+
 
             ],
 
@@ -86,6 +90,8 @@ class MyApp extends StatelessWidget {
                   'mainScreen': (context) => MainScreen(),
                   'explorerScreen':(context) => ExplorerScreen(),
                   'searchUserScreen': (context) => SearchUsersScreen(),
+                  'directScreen': (context) => DirectScreen(),
+
                 },
               ),
             ),

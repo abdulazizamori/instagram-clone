@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
 
-class SearchFieldWidget extends StatelessWidget {
-  const SearchFieldWidget({super.key});
+class DirectSearchFieldWidget extends StatelessWidget {
+  const DirectSearchFieldWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class SearchFieldWidget extends StatelessWidget {
                       ? Colors.grey.withOpacity(0.2)
                       : Colors.grey.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12)),
-              height: 25.h,
+              height: 30.h,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -47,7 +47,7 @@ class SearchFieldWidget extends StatelessWidget {
           ),
           SizedBox(width: 10.w),
           GestureDetector(
-              onTap: () {
+              onTap: (){
                 Navigator.pop(context);
               },
               child: Text(

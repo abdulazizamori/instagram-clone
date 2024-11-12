@@ -1,17 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
 import 'package:instaclone/main.dart';
+import 'package:instaclone/presentations/screens/chat-screens/chat-screen.dart';
+
+import '../../screens/user-screen/user-screen.dart';
 
 class CustomListViewOfUsersWidget extends StatefulWidget {
   const CustomListViewOfUsersWidget({super.key});
 
   @override
-  _CustomListViewOfUsersWidgetState createState() => _CustomListViewOfUsersWidgetState();
+  _CustomListViewOfUsersWidgetState createState() =>
+      _CustomListViewOfUsersWidgetState();
 }
 
-class _CustomListViewOfUsersWidgetState extends State<CustomListViewOfUsersWidget> {
+class _CustomListViewOfUsersWidgetState
+    extends State<CustomListViewOfUsersWidget> {
   @override
   void initState() {
     super.initState();
@@ -20,6 +26,7 @@ class _CustomListViewOfUsersWidgetState extends State<CustomListViewOfUsersWidge
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser!.uid;
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is FetchUsersError) {
@@ -43,7 +50,15 @@ class _CustomListViewOfUsersWidgetState extends State<CustomListViewOfUsersWidge
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                    senderId: currentUser,
+                                    receiverId: users[index].uid.toString(),
+                                  )));
+                    },
                     child: Container(
                       child: ListTile(
                         leading: Container(
