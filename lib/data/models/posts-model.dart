@@ -11,6 +11,8 @@ class PostModel {
   String? userImage;
   bool likePost;
   List<String>? saves;
+  bool isSaved; // Add this field
+
 
 
   PostModel({
@@ -26,7 +28,30 @@ class PostModel {
     this.userImage,
     this.likePost = false,
     this.saves,
+    this.isSaved = false,
+
   });
+  PostModel copyWith({
+    String? id,
+    bool? isSaved,
+    List<String>? likes,
+    String? description,
+    String? userName,
+    String? userImage,
+    bool? isVideo,
+    List<String>? mediaUrls,
+  }) {
+    return PostModel(
+      uid: id ?? this.uid,
+      isSaved: isSaved ?? this.isSaved,
+      likes: likes ?? this.likes,
+      description: description ?? this.description,
+      userName: userName ?? this.userName,
+      userImage: userImage ?? this.userImage,
+      isVideo: isVideo ?? this.isVideo,
+      mediaUrls: mediaUrls ?? this.mediaUrls,
+    );
+  }
 
   // Convert to a map for Firestore storage
   Map<String, dynamic> toMap() {
@@ -42,6 +67,8 @@ class PostModel {
       'userName': userName,
       'userImage': userImage,
       'likePost': likePost,
+      'isSaved': isSaved, // Include in map
+
     };
   }
 
@@ -62,6 +89,8 @@ class PostModel {
       userName: map['userName'] ?? '',
       userImage: map['userImage'] ?? '',
       likePost: isLikedByUser,
+      isSaved: map['isSaved'] ?? false, // Default to false if not in map
+
     );
   }
 

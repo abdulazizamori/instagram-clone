@@ -21,11 +21,14 @@ class _DirectScreenState extends State<DirectScreen> {
   Widget build(BuildContext context) {
     return  Scaffold(
         body: Padding(
-                padding: const EdgeInsets.only(top: 40.0,left: 12,right: 12),
+                padding: const EdgeInsets.only(top: 40.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    DirectAppBarWidget(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: DirectAppBarWidget(),
+                    ),
                     SizedBox(height: 10.h,),
                     CustomSearchBar(onTap: () {
                       Navigator.pushNamed(context, 'searchUserScreen');

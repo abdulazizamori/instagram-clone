@@ -123,27 +123,34 @@ class PostsCubit extends Cubit<PostsState> {
 
   Future<void> toggleFavoritePost(PostModel post) async {
     try {
-      final favoritesRef = _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('favorites')
-          .doc(post.postId);
+      final userRef = FirebaseFirestore.instance.collection('users').doc(post.uid);
+      final favoritesRef = userRef.collection('favorites');
+      final docSnapshot = await favoritesRef.doc(post.postId).get();
 
-      // Check if the post is already saved in favorites
-      final docSnapshot = await favoritesRef.get();
+      bool isCurrentlySaved = docSnapshot.exists;
 
-      if (docSnapshot.exists) {
-        // If the post is already in favorites, remove it
-        await favoritesRef.delete();
+      if (isCurrentlySaved) {
+        // Post is already in favorites, remove it
+        await favoritesRef.doc(post.postId).delete();
+        print("Post removed from favorites");
       } else {
-        // If the post is not in favorites, add it
-        await favoritesRef.set(post.toMap());
+        // Post is not in favorites, add it
+        await favoritesRef.doc(post.postId).set({
+          'postId': post.postId,
+          'userId': post.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print("Post added to favorites");
       }
 
+      // Toggle the 'isSaved' status locally in the post
+      post.isSaved = !isCurrentlySaved;
+
     } catch (e) {
-      emit(PostsError('Failed to toggle favorite: $e'));
+      print("Error toggling favorite post: $e");
     }
   }
+
 
 
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:instaclone/main.dart';
 import 'package:instaclone/presentations/screens/explorer-screen/explorer-screen.dart';
 import 'package:instaclone/presentations/screens/explorer-screen/search-users-screen.dart';
 import 'package:instaclone/presentations/screens/home-screen/home-screen.dart';
@@ -19,7 +21,6 @@ class _MainScreenState extends State<MainScreen> {
     CreatePostScreen(),
     ProfileScreen(),
     ProfileScreen(),
-
   ];
   int currentPage = 0;
 
@@ -28,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: pages[currentPage],
       bottomNavigationBar: BottomNavigationBar(
-        type:BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Theme.of(context).brightness == Brightness.light
             ? Colors.white
             : Colors.black,
@@ -51,7 +52,16 @@ class _MainScreenState extends State<MainScreen> {
         items: [
           BottomNavigationBarItem(
             label: '',
-            icon: Icon(currentPage == 0 ?Icons.home:Icons.home_outlined , size: 28),
+            icon: Image.asset(
+              currentPage == 0
+                  ? 'assets/icons/homescreen.png'
+                  : 'assets/icons/home-not.png',
+              width: 22.w,
+              height: 22.h,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
           ),
           BottomNavigationBarItem(
             label: '',
@@ -59,19 +69,41 @@ class _MainScreenState extends State<MainScreen> {
           ),
           BottomNavigationBarItem(
             label: '',
-            icon: Icon(Icons.add)),
-          BottomNavigationBarItem(
-            label: '',
-            icon: Image.asset('assets/icons/reels.png',color: Theme.of(context).brightness==Brightness.light?Colors.black:Colors.white,),
+            icon: Image.asset(
+              currentPage == 2
+                  ? 'assets/icons/add-nav.png'
+                  : 'assets/icons/add-not.png',
+              width: 24.w,
+              height: 24.h,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
           ),
           BottomNavigationBarItem(
             label: '',
-            icon: Icon(currentPage==4?Icons.person: Icons.person_outline, size: 28),
+            icon: Image.asset(
+              'assets/icons/reels.png',
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
+          ),
+          BottomNavigationBarItem(
+            label: '',
+            icon: Image.asset(
+              currentPage == 4
+                  ? 'assets/icons/profile-nav.png'
+                  : 'assets/icons/profile-not1.png',
+              width: 24.w,
+              height: 24.h,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
           ),
         ],
-
       ),
     );
   }
 }
-

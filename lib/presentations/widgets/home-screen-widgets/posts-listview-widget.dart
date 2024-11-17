@@ -87,7 +87,13 @@ class _CustomPostsListviewState extends State<CustomPostsListview> {
                         setState(() {
                           cubit.toggleLikePost(post, uid);
                         });
-                      },
+                      }, onFavoriteToggle: () async{
+                      await cubit.toggleFavoritePost(post);
+                      setState(() {
+
+                      });
+
+                    },
                     ),
                     PostLikesCount(post: post),
                     PostDescription(post: post),
@@ -227,38 +233,49 @@ class PostHeader extends StatelessWidget {
   }
 }
 
-class PostActions extends StatelessWidget {
+class PostActions extends StatefulWidget {
   final PostModel post;
   final String uid;
   final VoidCallback onLikeToggle;
+  final VoidCallback onFavoriteToggle;
+
 
   const PostActions({
     required this.post,
     required this.uid,
-    required this.onLikeToggle,
+    required this.onLikeToggle, required this.onFavoriteToggle,
   });
 
   @override
+  State<PostActions> createState() => _PostActionsState();
+}
+
+class _PostActionsState extends State<PostActions> {
+  @override
   Widget build(BuildContext context) {
-    final isLiked = post.likes?.contains(uid) ?? false;
+    final cubit = context.read<PostsCubit>();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
+          // Like button
           GestureDetector(
             child: Icon(
-              isLiked ? Icons.favorite : Icons.favorite_border,
-              color: isLiked
+              (widget.post.likes?.contains(widget.uid) ?? false)
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: (widget.post.likes?.contains(widget.uid) ?? false)
                   ? Colors.red
-                  : (Theme.of(context).brightness == Brightness.light
+                  : Theme.of(context).brightness == Brightness.light
                   ? Colors.black
-                  : Colors.white),
+                  : Colors.white,
               size: 20.w,
             ),
-            onTap: onLikeToggle,
+            onTap: widget.onLikeToggle,
           ),
           SizedBox(width: 10.w),
+          // Comment and Send icons
           Image.asset(
             'assets/icons/comment.png',
             color: Theme.of(context).brightness == Brightness.light
@@ -279,14 +296,16 @@ class PostActions extends StatelessWidget {
             fit: BoxFit.fill,
           ),
           Spacer(),
-          Image.asset(
-            'assets/icons/save.png',
-            color: Theme.of(context).brightness == Brightness.light
-                ? Colors.black
-                : Colors.white,
-            width: 20.w,
-            height: 20.h,
-            fit: BoxFit.fill,
+          // Save button
+          GestureDetector(
+            child: Icon(
+              widget.post.isSaved ? Icons.bookmark : Icons.bookmark_border,
+              color: widget.post.isSaved ? Theme.of(context).brightness==Brightness.light?Colors.black:Colors.white : Theme.of(context).brightness==Brightness.light?Colors.black:Colors.white,
+              size: 20.w,
+            ),
+
+            onTap:widget.onFavoriteToggle
+
           ),
         ],
       ),

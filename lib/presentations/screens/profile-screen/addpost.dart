@@ -25,7 +25,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: Text('Create Post')),
+      appBar: AppBar(title: Text('Create Post'),backgroundColor: Colors.transparent,),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -33,11 +33,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             children: [
               Container(
                 width: MediaQuery.of(context).size.width.w,
-                height: 300.h,
+                height: 100.h,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ElevatedButton.icon(
+
                       onPressed: () async {
                         final selectedImages = await _picker.pickMultiImage(); // Select multiple images
                         if (selectedImages != null) {
@@ -46,6 +47,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           });
                         }
                       },
+                      style: ButtonStyle(foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Text and icon color
+                        backgroundColor: Theme.of(context).brightness==Brightness.light?MaterialStateProperty.all<Color>(Colors.grey):MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.2)), ),
                       icon: Icon(Icons.photo),
                       label: Text('Add Images'),
                     ),
@@ -62,6 +65,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       },
                       icon: Icon(Icons.videocam),
                       label: Text('Add Video'),
+                      style: ButtonStyle(foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Text and icon color
+                        backgroundColor: Theme.of(context).brightness==Brightness.light?MaterialStateProperty.all<Color>(Colors.grey):MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.2)), ),
                     ),
                   ],
                 ),
@@ -111,8 +116,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 controller: descriptionController,
                 decoration: InputDecoration(labelText: 'Description'),
               ),
+              SizedBox(height: 10.h,),
               // Submit button to create post
               ElevatedButton(
+                style: ButtonStyle(foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Text and icon color
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), ),
                 onPressed: () async {
                   String uid = FirebaseAuth.instance.currentUser!.uid;
                   String description = descriptionController.text;
@@ -142,6 +150,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               BlocConsumer<PostsCubit, PostsState>(
                 listener: (context, state) {
                   if (state is PostCreatedSuccess) {
+                    descriptionController.clear();
+                    setState(() {
+                      mediaFiles!.clear();
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Post created successfully')),
                     );
@@ -154,7 +166,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 },
                 builder: (context, state) {
                   if (state is PostsLoading) {
-                    return CircularProgressIndicator(); // Show loading indicator
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(),
+                    ); // Show loading indicator
                   }
                   return SizedBox.shrink(); // No additional UI if there's no error/loading
                 },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../logic/authCubit/auth_cubit.dart';
+import '../../screens/profile-screen/menu-screen.dart';
 
 class CustomDetailsAppBar extends StatefulWidget {
   const CustomDetailsAppBar({super.key});
@@ -69,8 +70,7 @@ class _CustomDetailsAppBarState extends State<CustomDetailsAppBar> {
                         )),
                     IconButton(
                         onPressed: () {
-                          modalBottomSheetMenu();
-                        },
+Navigator.push(context, MaterialPageRoute(builder: (context)=> MenuScreen()));                        },
                         icon: Image.asset(
                           'assets/icons/more.png',
                           color:

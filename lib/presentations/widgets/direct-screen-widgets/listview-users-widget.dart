@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/chat-cubit/chat_cubit.dart';
 import 'package:instaclone/data/models/message-model.dart';
+import 'package:instaclone/main-screen.dart';
 import '../../screens/chat-screens/chat-screen.dart';
 
 class ListOfUsersWidget extends StatefulWidget {
@@ -36,7 +38,7 @@ class _ListOfUsersWidgetState extends State<ListOfUsersWidget> {
             final users = state.users;
 
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric( vertical: 16.0),
               child: ListView.builder(
                 itemCount: users.length,
                 itemBuilder: (context, index) {
@@ -50,7 +52,7 @@ class _ListOfUsersWidgetState extends State<ListOfUsersWidget> {
                         return ListTile(
                           leading: Container(
                             clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(shape: BoxShape.circle,),
+                            decoration: BoxDecoration(shape: BoxShape.circle,border: Border.all(color: user.profilePicture!.isNotEmpty?Colors.transparent:Colors.grey)),
                             child:  user.profilePicture!.isNotEmpty?Image.network(user.profilePicture.toString()):Icon(Icons.person_outline,size: 28,),
                           ),
                           title: Text(user.userName ?? 'Unknown'),
@@ -62,9 +64,11 @@ class _ListOfUsersWidgetState extends State<ListOfUsersWidget> {
                       final lastMessage = snapshot.data;
                       return ListTile(
                         leading: Container(
+                          width: 60.w,
+                          height: 60.h,
                           clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(shape: BoxShape.circle,),
-                          child:  user.profilePicture!.isNotEmpty?Image.network(user.profilePicture.toString()):Icon(Icons.person_outline,size: 28,),
+                          decoration: BoxDecoration(shape: BoxShape.circle,border: Border.all(color: user.profilePicture!.isNotEmpty?Colors.transparent:Colors.grey)),
+                          child:  user.profilePicture!.isNotEmpty?Image.network(user.profilePicture.toString(),fit: BoxFit.fill,):Icon(Icons.person_outline,size: 28,),
                         ),
                         title: Text(user.userName ?? 'Unknown'),
                         subtitle: Text(lastMessage?.message ?? 'No messages yet'),
@@ -87,7 +91,10 @@ class _ListOfUsersWidgetState extends State<ListOfUsersWidget> {
               ),
             );
           } else if (state is ChatParticipantsLoading) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            ));
           } else {
             return Center(child: Text("No users found"));
           }
