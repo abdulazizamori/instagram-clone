@@ -10,6 +10,8 @@ class PostModel {
   String? userName;
   String? userImage;
   bool likePost;
+  List<String>? saves;
+
 
   PostModel({
     this.postId,
@@ -23,6 +25,7 @@ class PostModel {
     this.userName,
     this.userImage,
     this.likePost = false,
+    this.saves,
   });
 
   // Convert to a map for Firestore storage

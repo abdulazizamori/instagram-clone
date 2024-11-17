@@ -22,3 +22,5 @@ class ChatParticipantsLoaded extends ChatState {
   ChatParticipantsLoaded(this.users);
 }
 final class ChatParticipantsLoading extends ChatState{}
+final class ChatLoading extends ChatState{}
+

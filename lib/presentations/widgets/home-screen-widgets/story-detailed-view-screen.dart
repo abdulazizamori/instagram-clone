@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:instaclone/main.dart';
 import 'package:story_view/story_view.dart';
 import '../../../data/models/story-model.dart';
 
@@ -94,40 +96,43 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
               top: 50, // Adjust the position as needed
               left: 10, // Adjust the position as needed
               child: Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                      ),
-                      child: Image.network(
-                        widget.stories.first.userProfilePicture.toString(),
-                        width: 40, // Set the width of the profile picture
-                        height: 40, // Set the height of the profile picture
-                        fit: BoxFit
-                            .cover, // Ensure the image covers the circular area
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 5),
+                  child: Row(
+                    children: [
+                      Container(
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: widget.stories.first.userProfilePicture!.isNotEmpty?Image.network(
+                          widget.stories.first.userProfilePicture.toString(),
+                          width: 40, // Set the width of the profile picture
+                          height: 40, // Set the height of the profile picture
+                          fit: BoxFit
+                              .cover, // Ensure the image covers the circular area
+                        ):Icon(Icons.person_outline,color: Colors.white,),
 
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      widget.stories.first.userName.toString(),
-                      style: TextStyle(
-                        color: Colors.white,
-                        // Adjust the text color for visibility
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    SizedBox(width: 30),
-                    Text(
-                      formatDuration(
-                          widget.stories.first.createdAt ?? DateTime.now()),
-                      style: TextStyle(
-                        color: Colors.white,
+                      SizedBox(width: 10),
+                      Text(
+                        widget.stories.first.userName.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          // Adjust the text color for visibility
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 30.w),
+                      Text(
+                        formatDuration(
+                            widget.stories.first.createdAt ?? DateTime.now()),
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

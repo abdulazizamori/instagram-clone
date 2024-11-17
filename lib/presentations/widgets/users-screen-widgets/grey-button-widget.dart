@@ -16,7 +16,7 @@ class CustomGreyButton extends StatelessWidget {
         onTap!();
       },
       child: Container(
-        width: 105.w,
+        width: 92.w,
         height: 30.h,
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.light? AppColors.grey.withOpacity(0.2): Colors.grey.withOpacity(0.5),

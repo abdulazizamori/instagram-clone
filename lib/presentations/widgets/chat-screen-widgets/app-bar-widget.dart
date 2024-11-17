@@ -8,6 +8,7 @@ import 'package:instaclone/main.dart';
 
 class ChatAppBarWidget extends StatefulWidget {
   final String friendid;
+
   const ChatAppBarWidget({super.key, required this.friendid});
 
   @override
@@ -39,7 +40,7 @@ class _ChatAppBarWidgetState extends State<ChatAppBarWidget> {
         }
 
         return Padding(
-          padding: const EdgeInsets.only(top: 18.0,left: 20,right: 20),
+          padding: const EdgeInsets.only(top: 18.0, left: 10, right: 20),
           child: Row(
             children: [
               GestureDetector(
@@ -48,36 +49,38 @@ class _ChatAppBarWidgetState extends State<ChatAppBarWidget> {
                 },
                 child: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  size: 28,
+                  size: 22,
                 ),
               ),
               SizedBox(width: 8.w),
               Container(
-                width: 30.w,
-                height: 30.h,
-                clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle
-                  ),
-                  child: Image.network(photo.toString(),fit: BoxFit.fill,)),
+                  width: 35.w,
+                  height: 35.h,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(shape: BoxShape.circle),
+                  child: photo!.isNotEmpty?Image.network(
+                    photo.toString(),
+                    fit: BoxFit.fill,
+                  ):Icon(Icons.person_outline,size: 28,)),
+              SizedBox(
+                width: 5.w,
+              ),
               Text(
                 username ?? 'Loading...',
                 style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700),
               ),
               SizedBox(width: 3.w),
-              Icon(Icons.arrow_forward_ios_sharp,size: 20,color: Colors.grey.withOpacity(0.5),),
               Spacer(),
-              Icon(Icons.phone_outlined, size: 28),
-              SizedBox(width: 10.w,),
-              Icon(Icons.video_call, size: 28),
-
+              Icon(Icons.phone_outlined, size: 24),
+              SizedBox(
+                width: 10.w,
+              ),
+              Icon(Icons.video_call, size: 24),
             ],
           ),
         );
       },
-      listener: (context, state) {
-        // No listener needed for now
-      },
+      listener: (context, state) {},
     );
   }
 }

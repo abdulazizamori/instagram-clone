@@ -18,8 +18,8 @@ class CustomListViewHighLights extends StatefulWidget {
 class _CustomListViewHighLightsState extends State<CustomListViewHighLights> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 86.h,
+    return widget.userStories.isNotEmpty ?SizedBox(
+      height: 90.h,
       width: MediaQuery.of(context).size.width.w,
       child: ListView.builder(
         shrinkWrap: true,
@@ -49,25 +49,25 @@ class _CustomListViewHighLightsState extends State<CustomListViewHighLights> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle, // Ensures the container is circular
                       border: Border.all(
-                        color: Colors.grey,
+                        color: Colors.grey.withOpacity(0.2),
                         width: 2,
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: Container(
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                         ),
-                        child: Image.network(
-                          story.userProfilePicture ?? 'https://via.placeholder.com/150', // Use the user's profile picture
+                        child: story.userProfilePicture!.isNotEmpty?Image.network(
+                          story.userProfilePicture.toString(), // Use the user's profile picture
                           fit: BoxFit.fill, // Ensures the image covers the circular container
-                        ),
+                        ):Icon(Icons.person_outline),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4), // Add some space between the image and text
+                  SizedBox(height: 4.h), // Add some space between the image and text
                   Text(story.userName ?? 'User'), // Display the user's name or a default text
                 ],
               ),
@@ -75,6 +75,6 @@ class _CustomListViewHighLightsState extends State<CustomListViewHighLights> {
           );
         },
       ),
-    );
+    ):SizedBox();
   }
 }

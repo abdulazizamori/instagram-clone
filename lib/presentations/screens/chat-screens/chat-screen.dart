@@ -45,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
         body: Column(
           children: [
             ChatAppBarWidget(friendid: widget.receiverId),
+            Divider(),
             Expanded(
               child: BlocConsumer<ChatCubit, ChatState>(
                 listener: (context, state) {
@@ -79,10 +80,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isMe ? Colors.blue[100] : Colors.grey[300],
+                              color: isMe ? Colors.blue : Colors.grey.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(message.message),
+                            child: Text(message.message,style: TextStyle(color: Colors.white),),
                           ),
                         );
                       },
@@ -104,18 +105,19 @@ class _ChatScreenState extends State<ChatScreen> {
                         ? Colors.grey.withOpacity(0.2)
                         : Colors.grey.withOpacity(0.5)),
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 2.0, right: 15),
+                  padding: const EdgeInsets.only(left: 5.0, right: 15),
                   child: Row(
                     children: [
                       Container(
-                        width: 20.w,
-                        height: 20.h,
+                        width: 32.w,
+                        height: 32.h,
                         decoration: BoxDecoration(
                             shape: BoxShape.circle, color: Colors.blue),
                         child: Center(
                           child: Icon(
                             Icons.camera_alt,
                             color: Colors.white,
+                            size: 20,
                           ),
                         ),
                       ),

@@ -11,13 +11,13 @@ class CustomColumnInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(userModel.userName.toString(),style: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w700),),
-          Text(userModel.name.toString(),style: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w400),),
-          Text(userModel.bio.toString(),style: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w400)),
+          userModel.userName!.isNotEmpty?Text(userModel.userName.toString(),style: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w700),):SizedBox(),
+          userModel.name!.isNotEmpty?Text(userModel.name.toString(),style: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w400),):SizedBox(),
+          userModel.bio!.isNotEmpty?Text(userModel.bio.toString(),style: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w400)):SizedBox(),
         ],
       ),
     );

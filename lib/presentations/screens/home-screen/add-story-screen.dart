@@ -26,7 +26,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       listener: (context, state) {
         if (state is StoryCreatedSuccess) {
           // If the story was added successfully, navigate back
-          Navigator.pop(context);
+          Navigator.pushReplacementNamed(context,'mainScreen');
         } else if (state is StoryError) {
           // Handle errors if the story addition failed
           ScaffoldMessenger.of(context).showSnackBar(

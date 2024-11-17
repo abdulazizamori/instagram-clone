@@ -54,10 +54,7 @@ class _CustomListViewOfUsersWidgetState
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                    senderId: currentUser,
-                                    receiverId: users[index].uid.toString(),
-                                  )));
+                              builder: (context) => UserScreen(userModel: users[index], userId: users[index].uid.toString())));
                     },
                     child: Container(
                       child: ListTile(
@@ -68,10 +65,10 @@ class _CustomListViewOfUsersWidgetState
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                           ),
-                          child: Image.network(
+                          child: users[index].profilePicture!.isNotEmpty?Image.network(
                             users[index].profilePicture.toString(),
                             fit: BoxFit.fill,
-                          ),
+                          ):Icon(Icons.person_outline,size: 28,)
                         ),
                         title: Text(users[index].userName ?? ''),
                         subtitle: Text(users[index].name ?? ''),

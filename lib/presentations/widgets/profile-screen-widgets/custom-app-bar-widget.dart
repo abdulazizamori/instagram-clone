@@ -80,6 +80,7 @@ class _CustomDetailsAppBarState extends State<CustomDetailsAppBar> {
                         )),
                   ],
                 )
+
               : SizedBox();
         },
         listener: (context, state) {});

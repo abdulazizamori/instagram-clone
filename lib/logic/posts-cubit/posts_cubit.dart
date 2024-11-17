@@ -119,6 +119,31 @@ class PostsCubit extends Cubit<PostsState> {
   }
 
 
+// Add this function inside your PostsCubit
+
+  Future<void> toggleFavoritePost(PostModel post) async {
+    try {
+      final favoritesRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(post.postId);
+
+      // Check if the post is already saved in favorites
+      final docSnapshot = await favoritesRef.get();
+
+      if (docSnapshot.exists) {
+        // If the post is already in favorites, remove it
+        await favoritesRef.delete();
+      } else {
+        // If the post is not in favorites, add it
+        await favoritesRef.set(post.toMap());
+      }
+
+    } catch (e) {
+      emit(PostsError('Failed to toggle favorite: $e'));
+    }
+  }
 
 
 
@@ -238,47 +263,9 @@ class PostsCubit extends Cubit<PostsState> {
     }
   }
 
-  // Add post to favorites
-  Future<void> addPostToFavorites(String postId, String userId) async {
-    emit(PostsLoading());
-    try {
-      await _firestore.collection('users').doc(userId).update({
-        'favorites': FieldValue.arrayUnion([postId]),
-      });
 
-      emit(PostFavorited());
-    } catch (e) {
-      emit(PostsError('Failed to add post to favorites: $e'));
-    }
-  }
 
-  // Fetch favorite posts for the favorite screen
-  Future<void> fetchFavoritePosts(String userId) async {
-    emit(PostsLoading());
-    try {
-      DocumentSnapshot userSnapshot =
-      await _firestore.collection('users').doc(userId).get();
-      List<String> favoritePostIds = List<String>.from(userSnapshot['favorites']);
 
-      if (favoritePostIds.isEmpty) {
-        emit(PostsLoaded([])); // No favorites, return empty list
-        return;
-      }
-
-      QuerySnapshot postSnapshot = await _firestore
-          .collection('posts')
-          .where(FieldPath.documentId, whereIn: favoritePostIds)
-          .get();
-
-      List<PostModel> posts = postSnapshot.docs.map((doc) {
-        return PostModel.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
-
-      emit(PostsLoaded(posts));
-    } catch (e) {
-      emit(PostsError('Failed to fetch favorite posts: $e'));
-    }
-  }
 
 
 }

@@ -12,11 +12,11 @@ class StoryCreatedSuccess extends StoryState {
 
   StoryCreatedSuccess(this.story);
 }
-
 class StoriesLoaded extends StoryState {
   final List<StoryModel> stories;
+  final bool userHasStory; // New field to check if user has a story
 
-  StoriesLoaded(this.stories);
+  StoriesLoaded({required this.stories, required this.userHasStory});
 }
 
 class StoryViewedSuccess extends StoryState {}

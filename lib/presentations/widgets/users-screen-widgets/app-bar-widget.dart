@@ -20,6 +20,7 @@ class _CustomUserAppBarWidgetState extends State<CustomUserAppBarWidget> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
               onTap: () {

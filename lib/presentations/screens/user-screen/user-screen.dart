@@ -15,7 +15,7 @@ import '../../widgets/users-screen-widgets/follow-button-widget.dart';
 import '../../widgets/users-screen-widgets/grey-button-widget.dart';
 import '../../widgets/users-screen-widgets/name-bio-widget.dart';
 import '../../widgets/users-screen-widgets/tab-bar-widget.dart';
-
+import '../chat-screens/chat-screen.dart';
 
 class UserScreen extends StatefulWidget {
   final UserModel userModel;
@@ -29,6 +29,8 @@ class UserScreen extends StatefulWidget {
 
 class _UserScreenState extends State<UserScreen> {
   bool isFollowing = false; // Local state for following status
+  final currentUser = FirebaseAuth.instance.currentUser!.uid;
+
 
   @override
   void initState() {
@@ -71,7 +73,7 @@ class _UserScreenState extends State<UserScreen> {
                     uerId: widget.userId,
                     userModel: widget.userModel,
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 5.h),
                   CustomUserCircleAvatarRowWidget(
                     userModel: widget.userModel,
                   ),
@@ -104,22 +106,21 @@ class _UserScreenState extends State<UserScreen> {
                           title: 'Message',
                           onTap: () {
                             // Example of navigating to ChatScreen
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => ChatScreen(
-                            //       userId: FirebaseAuth.instance.currentUser!.uid,  // Current user
-                            //       recipientId: widget.userId,  // The recipient's user ID
-                            //     ),
-                            //   ),
-                            // );
-
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatScreen(senderId: currentUser, receiverId: widget.userId,
+                                   // The recipient's user ID
+                                ),
+                              ),
+                            );
                           },
                         ),
-                        Spacer(),
+                        SizedBox(width: 10,),
                         CustomGreyButton(title: 'Subscribe'),
-                        Spacer(),
+                        SizedBox(width: 10,),
                         CustomGreyButton(title: 'Contact'),
+
                       ],
                     ),
                   ),

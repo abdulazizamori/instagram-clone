@@ -26,11 +26,11 @@ class _CustomColumnOfTextState extends State<CustomColumnOfText> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(userinfo.name ?? ''),
+              state.userInfo.name!.isNotEmpty?Text(userinfo.name.toString()):SizedBox(),
               SizedBox(height: 5,),
-              Text(userinfo.userName ?? ''),
+              state.userInfo.userName!.isNotEmpty?Text(userinfo.userName.toString()):SizedBox(),
               SizedBox(height: 5,),
-              Text(userinfo.bio ?? '', maxLines: 3),
+              state.userInfo.bio!.isNotEmpty?Text(userinfo.bio.toString(), maxLines: 3):SizedBox(),
             ],
           );
         } else if (state is UserInfoLoading) {

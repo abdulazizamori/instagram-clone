@@ -48,8 +48,10 @@ class _ListOfUsersWidgetState extends State<ListOfUsersWidget> {
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(user.profilePicture ?? 'https://via.placeholder.com/150'),
+                          leading: Container(
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(shape: BoxShape.circle,),
+                            child:  user.profilePicture!.isNotEmpty?Image.network(user.profilePicture.toString()):Icon(Icons.person_outline,size: 28,),
                           ),
                           title: Text(user.userName ?? 'Unknown'),
                           subtitle: Text('Loading...'),
@@ -59,8 +61,10 @@ class _ListOfUsersWidgetState extends State<ListOfUsersWidget> {
 
                       final lastMessage = snapshot.data;
                       return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(user.profilePicture ?? 'https://via.placeholder.com/150'),
+                        leading: Container(
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(shape: BoxShape.circle,),
+                          child:  user.profilePicture!.isNotEmpty?Image.network(user.profilePicture.toString()):Icon(Icons.person_outline,size: 28,),
                         ),
                         title: Text(user.userName ?? 'Unknown'),
                         subtitle: Text(lastMessage?.message ?? 'No messages yet'),

@@ -25,6 +25,15 @@ class PostsError extends PostsState {
   PostsError(this.error);
 }
 
-class PostFavorited extends PostsState {}
+class PostFavoritedToggle extends PostsState {
+  final String postId;
+  final bool isFavorited;
 
+  PostFavoritedToggle(this.postId, {required this.isFavorited});
+}
+class PostSavedToggle extends PostsState {
+  final String postId;
+  final bool isSaved;
 
+  PostSavedToggle({required this.postId, required this.isSaved});
+}

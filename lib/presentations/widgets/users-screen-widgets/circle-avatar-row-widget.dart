@@ -21,7 +21,6 @@ class CustomUserCircleAvatarRowWidget extends StatelessWidget {
                 height: 90.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.red, width: 2.w),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -29,11 +28,12 @@ class CustomUserCircleAvatarRowWidget extends StatelessWidget {
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey)
                     ),
-                    child: Image.network(
+                    child: userModel.profilePicture!.isNotEmpty?Image.network(
                       userModel.profilePicture.toString(),
                       fit: BoxFit.fill,
-                    ),
+                    ):Icon(Icons.person_outline,size: 28,),
                   ),
                 ),
               ),
@@ -42,11 +42,11 @@ class CustomUserCircleAvatarRowWidget extends StatelessWidget {
                 children: [
                   Text(
                     userModel.postsCount.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.sp),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
                   ),
                   SizedBox(height: 3.h),
                   Text(
-                    'Posts',
+                    'posts',
                     style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
                   ),
                 ],
@@ -56,11 +56,11 @@ class CustomUserCircleAvatarRowWidget extends StatelessWidget {
                 children: [
                   Text(
                     userModel.followersCount.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.sp),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
                   ),
                   SizedBox(height: 3.h),
                   Text(
-                    'Followers',
+                    'followers',
                     style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
                   ),
                 ],
@@ -70,11 +70,11 @@ class CustomUserCircleAvatarRowWidget extends StatelessWidget {
                 children: [
                   Text(
                     userModel.followingCount.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.sp),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
                   ),
                   SizedBox(height: 3.h),
                   Text(
-                    'Following',
+                    'following',
                     style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
                   ),
                 ],

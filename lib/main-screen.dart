@@ -18,6 +18,8 @@ class _MainScreenState extends State<MainScreen> {
     ExplorerScreen(),
     CreatePostScreen(),
     ProfileScreen(),
+    ProfileScreen(),
+
   ];
   int currentPage = 0;
 
@@ -60,7 +62,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.add)),
           BottomNavigationBarItem(
             label: '',
-            icon: Icon(currentPage==3?Icons.person: Icons.person_outline, size: 28),
+            icon: Image.asset('assets/icons/reels.png',color: Theme.of(context).brightness==Brightness.light?Colors.black:Colors.white,),
+          ),
+          BottomNavigationBarItem(
+            label: '',
+            icon: Icon(currentPage==4?Icons.person: Icons.person_outline, size: 28),
           ),
         ],
 

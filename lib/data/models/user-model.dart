@@ -21,6 +21,8 @@ class UserModel {
   int followingCount;
   List<String>? participants; // List of active chat IDs
   Map<String, dynamic>? lastMessages; // Last messages by chat ID
+  String? fcmToken;
+
 
   UserModel({
     this.uid,
@@ -42,6 +44,7 @@ class UserModel {
     this.followersCount = 0,
     this.followingCount = 0,
     this.participants,
+    this.fcmToken,
     this.lastMessages,
   })  : createdAt = createdAt ?? DateTime.now(),
         lastUpdated = lastUpdated ?? DateTime.now();
@@ -69,6 +72,8 @@ class UserModel {
       'phone': phone,
       'participants': participants,
       'lastMessages': lastMessages,
+      'fcmToken': fcmToken,
+
     };
   }
 
@@ -99,6 +104,7 @@ class UserModel {
       followingCount: map['followingCount'] ?? 0,
       participants: List<String>.from(map['participants'] ?? []),
       lastMessages: Map<String, dynamic>.from(map['lastMessages'] ?? {}),
+      fcmToken: map['fcmToken'],
     );
   }
 }

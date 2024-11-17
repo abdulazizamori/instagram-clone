@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:meta/meta.dart';
 import '../../data/models/message-model.dart';
 import '../../data/models/user-model.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
@@ -98,19 +100,116 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
+  // Future<void> sendMessage(MessageModel message) async {
+  //   try {
+  //     // Creating a combined sender-receiver ID for chat room identification
+  //     final chatId = _generateChatId(message.senderId, message.receiverId);
+  //
+  //     // First, send the message to the chat
+  //     await _db.child('chats/$chatId').push().set(message.toJson());
+  //
+  //     // Now, update the participants for both sender and receiver
+  //     await _updateParticipants(message.senderId, message.receiverId);
+  //   } catch (e) {
+  //     emit(ChatError("Failed to send message"));
+  //   }
+  // }
+
   Future<void> sendMessage(MessageModel message) async {
     try {
-      // Creating a combined sender-receiver ID for chat room identification
       final chatId = _generateChatId(message.senderId, message.receiverId);
 
-      // First, send the message to the chat
+      // Send the message to Realtime Database
       await _db.child('chats/$chatId').push().set(message.toJson());
 
-      // Now, update the participants for both sender and receiver
+      // Update participants
       await _updateParticipants(message.senderId, message.receiverId);
+
+      // Fetch the receiver's FCM token from Firestore
+      final receiverSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(message.receiverId)
+          .get();
+
+      if (receiverSnapshot.exists) {
+        final receiverData = receiverSnapshot.data();
+        final fcmToken = receiverData?['fcmToken'];
+
+        if (fcmToken != null) {
+          // Send FCM notification
+          await sendNotification(
+            fcmToken: fcmToken,
+            title: "New Message from ${message.senderId}",
+            body: message.message,
+          );
+        }
+      }
     } catch (e) {
       emit(ChatError("Failed to send message"));
     }
+  }
+
+
+  Future<void> sendNotification({
+    required String fcmToken,
+    required String title,
+    required String body,
+  }) async {
+    final String projectId = 'instaclone-c44fd'; // Replace with your project ID
+    final String endpoint = 'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
+
+    // Get the credentials from the service account JSON
+    final serviceAccount = File(Platform.environment['GOOGLE_APPLICATION_CREDENTIALS']!);
+    final Map<String, dynamic> credentials = json.decode(await serviceAccount.readAsString());
+
+    // Obtain an OAuth2 token
+    final response = await http.post(
+      Uri.parse(credentials['token_uri']),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        'assertion': _createJwt(credentials),
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch OAuth token: ${response.body}');
+    }
+
+    final token = json.decode(response.body)['access_token'];
+
+    // Send notification
+    final notificationPayload = {
+      'message': {
+        'token': fcmToken,
+        'notification': {
+          'title': title,
+          'body': body,
+        },
+      },
+    };
+
+    final fcmResponse = await http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode(notificationPayload),
+    );
+
+    if (fcmResponse.statusCode != 200) {
+      print('Error sending notification: ${fcmResponse.body}');
+    } else {
+      print('Notification sent successfully!');
+    }
+  }
+
+  String _createJwt(Map<String, dynamic> credentials) {
+    // Use a JWT library (e.g., `dart_jsonwebtoken`) to create the JWT token
+    throw UnimplementedError('JWT creation logic goes here.');
   }
 
   Future<void> _updateParticipants(String senderId, String receiverId) async {

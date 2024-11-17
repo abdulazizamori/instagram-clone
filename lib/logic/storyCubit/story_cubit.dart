@@ -103,7 +103,7 @@ class StoryCubit extends Cubit<StoryState> {
 
 
   // Fetch stories of followed users
-  Future<void> fetchStories(List<String> following) async {
+  Future<void> fetchStories(List<String> following, String currentUserId) async {
     try {
       emit(StoryLoading());
 
@@ -112,42 +112,61 @@ class StoryCubit extends Cubit<StoryState> {
           .where('uid', whereIn: following)
           .get();
 
-      List<StoryModel> stories = snapshot.docs.map((doc) {
-        return StoryModel.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
+      DateTime now = DateTime.now();
+      List<StoryModel> stories = [];
+      bool userHasStory = false;
 
-      emit(StoriesLoaded(stories));
+      for (var doc in snapshot.docs) {
+        StoryModel story = StoryModel.fromMap(doc.data() as Map<String, dynamic>);
+
+        // Check if the story was created within the last 24 hours
+        if (story.createdAt != null && now.difference(story.createdAt!).inHours < 24) {
+          stories.add(story);
+          if (story.uid == currentUserId) {
+            userHasStory = true; // Set userHasStory if the current user has a story
+          }
+        }
+      }
+
+      emit(StoriesLoaded(userHasStory: userHasStory, stories: stories));
     } catch (e) {
       emit(StoryError('Failed to fetch stories: $e'));
     }
   }
 
+
   // Fetch all available stories
-  // Fetch all available stories and filter by creation time
-  Future<void> fetchAllStories() async {
+  Future<void> fetchAllStories(String currentUserId) async {
     try {
       emit(StoryLoading());
 
       QuerySnapshot snapshot = await _firestore.collection('stories').get();
 
-      // Get current time
       DateTime now = DateTime.now();
+      List<StoryModel> stories = [];
+      bool userHasStory = false;
 
-      // Filter stories created within the last 24 hours
-      List<StoryModel> stories = snapshot.docs.map((doc) {
+      // First, add the current user's story if it exists
+      for (var doc in snapshot.docs) {
         StoryModel story = StoryModel.fromMap(doc.data() as Map<String, dynamic>);
-        // Check if the story was created within the last 24 hours
-        if (story.createdAt != null && now.difference(story.createdAt!).inHours < 24) {
-          return story;
-        }
-        return null; // Exclude this story
-      }).where((story) => story != null).cast<StoryModel>().toList(); // Remove null values
 
-      emit(StoriesLoaded(stories));
+        // Check if the story was created within the last 24 hours
+        if (story.createdAt != null && now.difference(story.createdAt!).inHours < 1000) {
+          if (story.uid == currentUserId) {
+            userHasStory = true; // Set userHasStory if the current user has a story
+            stories.insert(0, story); // Insert the current user's story at the start
+          } else {
+            stories.add(story); // Add other stories to the list
+          }
+        }
+      }
+
+      emit(StoriesLoaded(userHasStory: userHasStory, stories: stories));
     } catch (e) {
       emit(StoryError('Failed to fetch stories: $e'));
     }
   }
+
 
 
   // Add viewer to a story

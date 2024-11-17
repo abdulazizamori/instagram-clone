@@ -21,11 +21,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 12),
+              padding: const EdgeInsets.only(left: 12.0,top: 12),
               child: Column(
                 children: [
                   CustomHomeScreenAppBar(),
-                  SizedBox(height: 30.h,),
+                  SizedBox(height: 5.h,),
                   StoriesWidget(),
                 ],
               ),

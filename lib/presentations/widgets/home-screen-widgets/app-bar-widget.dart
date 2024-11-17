@@ -25,18 +25,15 @@ class CustomHomeScreenAppBar extends StatelessWidget {
         ),
         Icon(
           Icons.keyboard_arrow_down_rounded,
-          size: 34,
+          size: 24,
         ),
         Spacer(),
         Icon(
           Icons.favorite_border_sharp,
-          size: 34,
+          size: 24,
         ),
-        SizedBox(width: 30,),
-        Container(
-          width: 30,
-          height: 30,
-          child: GestureDetector(
+        SizedBox(width: 15.w,),
+         GestureDetector(
             onTap: (){
               Navigator.pushNamed(context, 'directScreen');
             },
@@ -45,17 +42,7 @@ class CustomHomeScreenAppBar extends StatelessWidget {
                 : Colors.white,
             fit: BoxFit.fill,),
           ),
-        ),
-        SizedBox(width: 30,),
-
-        Container(
-          width: 30,
-          height: 30,
-          child: Image.asset('assets/icons/profile-add.png',color:Theme.of(context).brightness == Brightness.light
-              ? Colors.black
-              : Colors.white,
-            fit: BoxFit.fill,),
-        ),
+        SizedBox(width: 15.w,),
 
       ],
     );

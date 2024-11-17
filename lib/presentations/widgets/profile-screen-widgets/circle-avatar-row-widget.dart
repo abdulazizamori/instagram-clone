@@ -35,7 +35,6 @@ class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
               height: 90.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.red, width: 2),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -47,14 +46,21 @@ class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1),
+                      border: Border.all(color: Theme.of(context)
+                          .brightness ==
+                          Brightness.light
+                          ? Colors.grey
+                          .withOpacity(0.2)
+                          : Colors.grey
+                          .withOpacity(
+                          0.5), width: 2),
                     ),
                     child: _lastUserInfo != null && _lastUserInfo!.profilePicture!.isNotEmpty
                         ? Image.network(
                       _lastUserInfo!.profilePicture.toString(),
                       fit: BoxFit.fill,
                     )
-                        : const SizedBox(),
+                        : const Icon(Icons.person_outline),
                   ),
                 ),
               ),
@@ -63,22 +69,22 @@ class _CustomCircleAvatarRowState extends State<CustomCircleAvatarRow> {
             if (_lastUserInfo != null) ...[
               Column(
                 children: [
-                  Text('${_lastUserInfo!.postsCount}'),
-                  Text('Posts'),
+                  Text('${_lastUserInfo!.postsCount}',style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.bold)),
+                  Text('posts'),
                 ],
               ),
               Spacer(),
               Column(
                 children: [
-                  Text('${_lastUserInfo!.followers!.length}'),
-                  Text('Followers'),
+                  Text('${_lastUserInfo!.followers!.length}',style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.bold)),
+                  Text('followers'),
                 ],
               ),
               Spacer(),
               Column(
                 children: [
-                  Text('${_lastUserInfo!.following!.length}'),
-                  Text('Following'),
+                  Text('${_lastUserInfo!.following!.length}',style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.bold),),
+                  Text('following'),
                 ],
               ),
             ],

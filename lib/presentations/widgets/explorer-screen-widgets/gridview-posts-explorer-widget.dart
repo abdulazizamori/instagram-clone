@@ -64,8 +64,10 @@ class _ExplorerGridViewWidgetState extends State<ExplorerGridViewWidget> {
             future: _initFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
+
+              int videoControllerIndex = 0;
 
               return GridView.builder(
                 physics: const BouncingScrollPhysics(),
@@ -94,13 +96,13 @@ class _ExplorerGridViewWidgetState extends State<ExplorerGridViewWidget> {
                               post.mediaUrls != null &&
                               post.mediaUrls!.isNotEmpty
                               ? VideoPlayerWidget(
-                            controller: _videoControllers[index],
+                            controller: _videoControllers[videoControllerIndex++],
                             isVisible: true, // Adjust based on your visibility logic
                           )
                               : post.mediaUrls != null && post.mediaUrls!.isNotEmpty
                               ? Image.network(
                             post.mediaUrls![0],
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             width: MediaQuery.of(context).size.width,
                             height: MediaQuery.of(context).size.height,
                           )
@@ -127,6 +129,7 @@ class _ExplorerGridViewWidgetState extends State<ExplorerGridViewWidget> {
       },
     );
   }
+
 }
 
 class VideoPlayerWidget extends StatefulWidget {
