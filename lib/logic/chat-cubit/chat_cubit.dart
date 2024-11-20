@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:meta/meta.dart';
 import '../../data/models/message-model.dart';
@@ -75,10 +76,15 @@ class ChatCubit extends Cubit<ChatState> {
         emit(ChatLoaded(messages)); // Emit loaded state with messages
       },
       onError: (error) {
-        emit(ChatError("Failed to load messages"));
+        // Log the error to help identify the issue
+        print("Error loading messages: $error");
+
+        // Emit error state with detailed message
+        emit(ChatError("Failed to load messages: $error"));
       },
     );
   }
+
 
   // Add this method to your ChatCubit class
   Future<MessageModel?> getLastMessage(String senderId, String receiverId) async {
@@ -135,17 +141,25 @@ class ChatCubit extends Cubit<ChatState> {
         final receiverData = receiverSnapshot.data();
         final fcmToken = receiverData?['fcmToken'];
 
-        if (fcmToken != null) {
-          // Send FCM notification
-          await sendNotification(
-            fcmToken: fcmToken,
-            title: "New Message from ${message.senderId}",
-            body: message.message,
-          );
+        if (fcmToken != null && fcmToken.isNotEmpty) {
+          // Try sending an FCM notification
+          try {
+            await sendNotification(
+              fcmToken: fcmToken,
+              title: "New Message",
+              body: message.message,
+            );
+          } catch (e) {
+            // Log the error but do not disrupt message sending
+            print("Failed to send FCM notification: $e");
+          }
+        } else {
+          print("Receiver does not have a valid FCM token.");
         }
       }
     } catch (e) {
-      emit(ChatError("Failed to send message"));
+      // Emit an error state if the message fails to send
+      emit(ChatError("Failed to send message: $e"));
     }
   }
 
@@ -155,32 +169,40 @@ class ChatCubit extends Cubit<ChatState> {
     required String title,
     required String body,
   }) async {
-    final String projectId = 'instaclone-c44fd'; // Replace with your project ID
-    final String endpoint = 'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
+    const String projectId = 'instaclone-c44fd';
+    const String endpoint = 'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
 
-    // Get the credentials from the service account JSON
-    final serviceAccount = File(Platform.environment['GOOGLE_APPLICATION_CREDENTIALS']!);
+    // Read service account credentials
+    final serviceAccountPath = Platform.environment['GOOGLE_APPLICATION_CREDENTIALS']!;
+    final serviceAccount = File(serviceAccountPath);
+
+    if (!serviceAccount.existsSync()) {
+      throw Exception('Service account file not found at $serviceAccountPath');
+    }
+
     final Map<String, dynamic> credentials = json.decode(await serviceAccount.readAsString());
 
-    // Obtain an OAuth2 token
-    final response = await http.post(
-      Uri.parse(credentials['token_uri']),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+    // Create a JWT
+    final String jwt = _createJwt(credentials);
+
+    // Exchange the JWT for an access token
+    final tokenUri = credentials['token_uri'];
+    final tokenResponse = await http.post(
+      Uri.parse(tokenUri),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: {
         'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        'assertion': _createJwt(credentials),
+        'assertion': jwt,
       },
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to fetch OAuth token: ${response.body}');
+    if (tokenResponse.statusCode != 200) {
+      throw Exception('Failed to fetch OAuth token: ${tokenResponse.body}');
     }
 
-    final token = json.decode(response.body)['access_token'];
+    final accessToken = json.decode(tokenResponse.body)['access_token'];
 
-    // Send notification
+    // Prepare notification payload
     final notificationPayload = {
       'message': {
         'token': fcmToken,
@@ -191,11 +213,12 @@ class ChatCubit extends Cubit<ChatState> {
       },
     };
 
+    // Send the notification
     final fcmResponse = await http.post(
       Uri.parse(endpoint),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $accessToken',
       },
       body: json.encode(notificationPayload),
     );
@@ -208,9 +231,19 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   String _createJwt(Map<String, dynamic> credentials) {
-    // Use a JWT library (e.g., `dart_jsonwebtoken`) to create the JWT token
-    throw UnimplementedError('JWT creation logic goes here.');
+    final jwt = JWT(
+      {
+        'iss': credentials['client_email'],
+        'scope': 'https://www.googleapis.com/auth/firebase.messaging',
+        'aud': credentials['token_uri'],
+        'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'exp': DateTime.now().add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
+      },
+    );
+
+    return jwt.sign(RSAPrivateKey(credentials['private_key']));
   }
+
 
   Future<void> _updateParticipants(String senderId, String receiverId) async {
     try {
@@ -264,14 +297,20 @@ class ChatCubit extends Cubit<ChatState> {
         .orderByChild('timestamp')
         .onValue
         .map((event) {
-      final data = event.snapshot.value as Map?;
-      if (data == null) return [];
+      try {
+        final data = event.snapshot.value as Map?;
+        if (data == null) return [];
 
-      return data.entries.map((entry) {
-        return MessageModel.fromJson(Map<String, dynamic>.from(entry.value));
-      }).toList();
+        return data.entries.map((entry) {
+          return MessageModel.fromJson(Map<String, dynamic>.from(entry.value));
+        }).toList();
+      } catch (e) {
+        print("Error fetching messages: $e");
+        return [];  // Return an empty list in case of an error
+      }
     });
   }
+
 
   String _generateChatId(String senderId, String receiverId) {
     return senderId.compareTo(receiverId) < 0

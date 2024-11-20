@@ -54,7 +54,7 @@ class _CustomListViewOfUsersWidgetState
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => UserScreen(userModel: users[index], userId: users[index].uid.toString())));
+                              builder: (context) => ChatScreen(senderId: currentUser, receiverId: users[index].uid.toString(),)));
                     },
                     child: Container(
                       child: ListTile(

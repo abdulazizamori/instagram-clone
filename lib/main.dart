@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
@@ -30,6 +31,34 @@ import 'data/sharedprefrence/cache.dart';
 import 'firebase_options.dart';
 import 'presentations/screens/auth-screens/register-screen.dart';
 
+
+final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(); // Ensure Firebase is initialized
+  print('Message received in background: ${message.notification?.title}');
+}
+void initLocalNotifications() {
+  const AndroidInitializationSettings androidSettings =
+  AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings settings =
+  InitializationSettings(android: androidSettings);
+
+  localNotifications.initialize(settings);
+
+  // Optional: Configure Android notification channel
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'channel_id',
+    'channel_name',
+    importance: Importance.high,
+  );
+
+  localNotifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -42,34 +71,22 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-// Listen for messages in the background
+
+  // Initialize Local Notifications
+  initLocalNotifications();
+
+  // Listen for background messages
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Check for messages that opened the app from a terminated state
-  final RemoteMessage? initialMessage =
-  await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null) {
-    print('Notification caused app to open: ${initialMessage.notification?.title}');
-  }
-
-  // Listen for messages in the foreground
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Message received in foreground: ${message.notification?.title}');
-    // Optionally show a local notification here
-  });
   // Initialize Firebase App Check
   await FirebaseAppCheck.instance.activate(
-      webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-      androidProvider: AndroidProvider.debug,
+    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+    androidProvider: AndroidProvider.debug,
   );
 
-  // Set up FCM token if user is authenticated
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    await saveFcmToken(user.uid);
-  }
 
-  // Initialize Firebase Messaging AutoInit
+
+  // Enable FCM auto-init
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
   // Initialize Hydrated Storage
@@ -82,27 +99,6 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(); // Ensure Firebase is initialized
-  print('Message received in background: ${message.notification?.title}');
-}
-
-/// Saves the FCM token for the current user in Firestore
-Future<void> saveFcmToken(String userId) async {
-  try {
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    print("FCM Token: $fcmToken");
-    if (fcmToken != null) {
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
-        'fcmToken': fcmToken,
-      });
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('Error saving FCM token: $e');
-    }
-  }
-}
 
 class MyApp extends StatelessWidget {
   @override

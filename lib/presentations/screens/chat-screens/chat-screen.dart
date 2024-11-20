@@ -51,8 +51,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 listener: (context, state) {
                   if (state is ChatError) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(state.errorMessage)),
+                      SnackBar(content: Text("Error: ${state.errorMessage}")),
                     );
+                    print('Error loading messages: ${state.errorMessage}');
                   }
                 },
                 builder: (context, state) {
@@ -83,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: isMe ? Colors.blue : Colors.grey.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(message.message,style: TextStyle(color: Colors.white),),
+                            child: Text(message.message, style: TextStyle(color: Colors.white)),
                           ),
                         );
                       },

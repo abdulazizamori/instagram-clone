@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instaclone/data/sharedprefrence/cache.dart';
@@ -21,6 +23,8 @@ class AuthCubit extends Cubit<AuthState> {
   String? errorMessage;
   bool verified = false;
   String? _downloadUrl;
+  final currentUser = FirebaseAuth.instance.currentUser!.uid;
+
   String? get downloadUrl => _downloadUrl;
   final ImagePicker picker = ImagePicker();
   String? uploadedImageUrl;
@@ -34,13 +38,13 @@ class AuthCubit extends Cubit<AuthState> {
       XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         emit(ImageSelected(image)); // Emit state with the selected image
-        await uploadImage(image); // Upload the selected image and update the profile picture
+        await uploadImage(
+            image); // Upload the selected image and update the profile picture
       }
     } catch (e) {
       emit(ImageSelectionError(e.toString())); // Emit error state on failure
     }
   }
-
 
 // Function to upload the selected profile picture
   Future<String?> uploadImage(XFile image) async {
@@ -60,68 +64,121 @@ class AuthCubit extends Cubit<AuthState> {
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
       // Update the user's profile picture URL in Firestore
-      final String userId = FirebaseAuth.instance.currentUser!.uid; // Get current user ID
+      final String userId =
+          FirebaseAuth.instance.currentUser!.uid; // Get current user ID
       await _firestore.collection('users').doc(userId).update({
         'profilePicture': downloadUrl, // Update the profilePicture field
       });
 
       emit(UploadSuccess(downloadUrl)); // Emit success with the download URL
       return downloadUrl; // Return the download URL
-
     } catch (e) {
-      emit(UploadError(e.toString())); // Emit error state with the error message
+      emit(
+          UploadError(e.toString())); // Emit error state with the error message
       return null;
     }
   }
 
+  Future<void> saveFcmToken(String userId) async {
+    try {
+      final userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
+
+      // Check if the user document exists
+      final userSnapshot = await userDoc.get();
+      if (!userSnapshot.exists) {
+        print("User document does not exist for $userId");
+        return;
+      }
+
+      // Get FCM token
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      print("FCM Token: $fcmToken");
+
+      // Save FCM token if valid
+      if (fcmToken != null) {
+        await userDoc.update({'fcmToken': fcmToken});
+        print("FCM token saved successfully!");
+      } else {
+        print("FCM token is null, not saved.");
+      }
+    } catch (e) {
+      print("Error saving FCM token: $e");
+    }
+  }
+
+
   /// Sign up with email and password
   Future<void> signUpWithEmailAndPassword(
       String? email, String? password, String? userName) async {
+    if (email == null || password == null || userName == null) {
+      emit(AuthError("Email, password, and username must not be null"));
+      return;
+    }
+
     try {
       emit(AuthLoading());
+
+      // Create user with email and password
       UserCredential userCredential =
       await _auth.createUserWithEmailAndPassword(
-        email: email!,
-        password: password!,
-      );
-
-      UserModel newUser = UserModel(
-        uid: userCredential.user?.uid,
-        userName: userName,
         email: email,
-        name: '',
-        website: '',
-        bio: '',
-        gender: '',
-        profilePicture: '',
-        followers: [],
-        following: [],
-        isVerified: false,
-        createdAt: DateTime.now(),
-        lastUpdated: DateTime.now(),
-        favorites: [],
-        postsCount: 0,
-        participants: []
-
+        password: password,
       );
 
-      await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+      final user = userCredential.user;
 
-      emit(UserCreateSuccess());
+      // If user creation is successful, create the UserModel
+      if (user != null) {
+        UserModel newUser = UserModel(
+          uid: user.uid,
+          userName: userName,
+          email: email,
+          name: '',
+          website: '',
+          bio: '',
+          gender: '',
+          profilePicture: '',
+          followers: [],
+          following: [],
+          isVerified: false,
+          createdAt: DateTime.now(),
+          lastUpdated: DateTime.now(),
+          favorites: [],
+          postsCount: 0,
+          participants: [],
+          fcmToken: '', // Set default empty string for now
+        );
+
+        // Save the user to Firestore
+        await _firestore
+            .collection('users')
+            .doc(newUser.uid)
+            .set(newUser.toMap());
+
+        // Save FCM token if necessary
+        saveFcmToken(user.uid);
+
+        emit(UserCreateSuccess());
+      } else {
+        emit(UserCreateError("Failed to create user."));
+      }
     } on FirebaseAuthException catch (e) {
       errorMessage = e.message;
-      emit(UserCreateError(e.toString()));
+      emit(UserCreateError(e.message ?? "An error occurred"));
     } catch (e) {
       errorMessage = e.toString();
       emit(AuthError(e.toString()));
     }
   }
 
+
   /// Sign in with email and password
-  Future<void> signInWithEmailAndPassword(String? email, String? password) async {
+  Future<void> signInWithEmailAndPassword(
+      String? email, String? password) async {
     try {
       emit(AuthLoading());
-      await _auth.signInWithEmailAndPassword(email: email!, password: password!);
+      await _auth.signInWithEmailAndPassword(
+          email: email!, password: password!);
       DocumentSnapshot doc = await _firestore
           .collection('users')
           .doc(_auth.currentUser!.uid)
@@ -129,6 +186,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       String token = doc.get('uid') as String;
       await cache.setData(key: 'auth_token', value: token);
+      await saveFcmToken(currentUser);
 
       emit(AuthSuccess(token));
     } on FirebaseAuthException catch (e) {
@@ -165,8 +223,6 @@ class AuthCubit extends Cubit<AuthState> {
   //   }
   // }
 
-
-
   /// Update user profile fields
   Future<void> updateUserProfile({
     required String name,
@@ -189,13 +245,15 @@ class AuthCubit extends Cubit<AuthState> {
           'bio': bio,
           'email': email,
           'gender': gender,
-          'phone':phone,
+          'phone': phone,
           'lastUpdated': DateTime.now(),
-
         };
 
         // Update the user document in Firestore
-        await _firestore.collection('users').doc(currentUser.uid).update(updatedData);
+        await _firestore
+            .collection('users')
+            .doc(currentUser.uid)
+            .update(updatedData);
 
         emit(AuthSuccess("User profile updated successfully"));
       } else {
@@ -205,9 +263,6 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthError('Error updating user profile: $e'));
     }
   }
-
-
-
 
   /// Sign out
   Future<void> signOut() async {
@@ -227,10 +282,12 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     try {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(userId).get();
 
       if (!userDoc.exists) {
-        emit(UserInfoLoadError("User document not found for ID: $userId.")); // Log message
+        emit(UserInfoLoadError(
+            "User document not found for ID: $userId.")); // Log message
         print("User document not found for ID: $userId."); // Log message
         return;
       }
@@ -251,6 +308,7 @@ class AuthCubit extends Cubit<AuthState> {
       print("Error fetching user info: ${error.toString()}"); // Log message
     }
   }
+
   /// Fetch all users from the 'users' collection
   Future<void> fetchAllUsers() async {
     emit(FetchUsersLoading()); // Emit loading state
@@ -270,10 +328,10 @@ class AuthCubit extends Cubit<AuthState> {
 
       emit(FetchUsersSuccess(users)); // Emit success state with users list
     } catch (e) {
-      emit(FetchUsersError('Failed to fetch users: ${e.toString()}')); // Emit error state
+      emit(FetchUsersError(
+          'Failed to fetch users: ${e.toString()}')); // Emit error state
     }
   }
-
 
   /// Update user profile fields
   // Future<void> updateUserProfile({
@@ -337,7 +395,8 @@ class AuthCubit extends Cubit<AuthState> {
         // Update current user's following list
         final currentUserData = currentUserDoc.data() as Map<String, dynamic>;
         final following = List<String>.from(currentUserData['following'] ?? []);
-        int followingCount = currentUserData['followingCount'] ?? 0; // Get initial following count
+        int followingCount = currentUserData['followingCount'] ??
+            0; // Get initial following count
 
         if (!following.contains(targetUserId)) {
           following.add(targetUserId);
@@ -350,7 +409,8 @@ class AuthCubit extends Cubit<AuthState> {
         // Update target user's followers list
         final targetUserData = targetUserDoc.data() as Map<String, dynamic>;
         final followers = List<String>.from(targetUserData['followers'] ?? []);
-        int followersCount = targetUserData['followersCount'] ?? 0; // Get initial followers count
+        int followersCount = targetUserData['followersCount'] ??
+            0; // Get initial followers count
 
         if (!followers.contains(currentUserId)) {
           followers.add(currentUserId);
@@ -367,7 +427,8 @@ class AuthCubit extends Cubit<AuthState> {
         userModel!.following!.add(targetUserId);
       }
 
-      emit(FollowUserSuccess(targetUserId, userModel!.following!.length)); // Emit with updated following count
+      emit(FollowUserSuccess(targetUserId,
+          userModel!.following!.length)); // Emit with updated following count
       emit(UserUpdated(userModel!)); // Emit updated state
     } catch (e) {
       emit(AuthError("Failed to follow user: $e"));
@@ -398,7 +459,8 @@ class AuthCubit extends Cubit<AuthState> {
         // Update current user's following list
         final currentUserData = currentUserDoc.data() as Map<String, dynamic>;
         final following = List<String>.from(currentUserData['following'] ?? []);
-        int followingCount = currentUserData['followingCount'] ?? 0; // Get initial following count
+        int followingCount = currentUserData['followingCount'] ??
+            0; // Get initial following count
 
         if (following.contains(targetUserId)) {
           following.remove(targetUserId);
@@ -411,7 +473,8 @@ class AuthCubit extends Cubit<AuthState> {
         // Update target user's followers list
         final targetUserData = targetUserDoc.data() as Map<String, dynamic>;
         final followers = List<String>.from(targetUserData['followers'] ?? []);
-        int followersCount = targetUserData['followersCount'] ?? 0; // Get initial followers count
+        int followersCount = targetUserData['followersCount'] ??
+            0; // Get initial followers count
 
         if (followers.contains(currentUserId)) {
           followers.remove(currentUserId);
@@ -424,13 +487,13 @@ class AuthCubit extends Cubit<AuthState> {
 
       // Update local user model
       userModel!.following?.remove(targetUserId);
-      emit(UnfollowUserSuccess(targetUserId, userModel!.following!.length)); // Emit with updated following count
+      emit(UnfollowUserSuccess(targetUserId,
+          userModel!.following!.length)); // Emit with updated following count
       emit(UserUpdated(userModel!)); // Emit updated state
     } catch (e) {
       emit(AuthError("Failed to unfollow user: $e"));
     }
   }
-
 
   /// Function to fetch a user's information by UID
   Future<void> fetchUser(String userId) async {
@@ -451,7 +514,6 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-
   Future<void> searchUsers(String query) async {
     emit(FetchUsersLoading());
     try {
@@ -471,7 +533,6 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-
   Future<void> fetchUserPostsCount(String userId) async {
     emit(UserInfoLoading()); // Emit loading state
 
@@ -486,12 +547,11 @@ class AuthCubit extends Cubit<AuthState> {
 
       // You could add this to the UserModel if you'd like to store the post count there:
       // emit a state containing this value if needed
-      emit(UserInfoPostsCountLoaded(postsCount)); // Emit loaded state with post count
+      emit(UserInfoPostsCountLoaded(
+          postsCount)); // Emit loaded state with post count
     } catch (error) {
       emit(UserInfoLoadError(
           "Error fetching post count: ${error.toString()}")); // Emit error state
     }
   }
-
-
 }
