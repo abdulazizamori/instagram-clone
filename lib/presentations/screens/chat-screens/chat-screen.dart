@@ -67,6 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     }
 
                     return ListView.builder(
+                      shrinkWrap: true,
                       reverse: true, // Show latest messages at the bottom
                       itemCount: messages.length,
                       itemBuilder: (context, index) {

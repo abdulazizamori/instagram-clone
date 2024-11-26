@@ -64,7 +64,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
           Expanded( // Use Expanded here to take the remaining space
             child: TabBarView(
               children: [
-                PostsListView(), // Your posts list view widget
+                PostsGridView(), // Your posts list view widget
                 Container(
                   color: Colors.transparent,
                   child: Icon(Icons.add),

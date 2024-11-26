@@ -3,21 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instaclone/logic/authCubit/auth_cubit.dart';
-import 'package:instaclone/main.dart';
-import 'package:instaclone/presentations/screens/chat-screens/chat-screen.dart';
 
 import '../../screens/user-screen/user-screen.dart';
 
-class CustomListViewOfUsersWidget extends StatefulWidget {
-  const CustomListViewOfUsersWidget({super.key});
+class CustomExploreListViewOfUsersWidget extends StatefulWidget {
+  const CustomExploreListViewOfUsersWidget({super.key});
 
   @override
-  _CustomListViewOfUsersWidgetState createState() =>
-      _CustomListViewOfUsersWidgetState();
+  _CustomExploreListViewOfUsersWidgetState createState() =>
+      _CustomExploreListViewOfUsersWidgetState();
 }
 
-class _CustomListViewOfUsersWidgetState
-    extends State<CustomListViewOfUsersWidget> {
+class _CustomExploreListViewOfUsersWidgetState
+    extends State<CustomExploreListViewOfUsersWidget> {
   @override
   void initState() {
     super.initState();
@@ -54,7 +52,7 @@ class _CustomListViewOfUsersWidgetState
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ChatScreen(senderId: currentUser, receiverId: users[index].uid.toString(),)));
+                              builder: (context) => UserScreen( userModel: users[index], userId: users[index].uid.toString(),)));
                     },
                     child: Container(
                       child: ListTile(

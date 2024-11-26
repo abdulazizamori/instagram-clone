@@ -5,21 +5,21 @@ import 'package:instaclone/presentations/screens/profile-screen/detailed-post-sc
 import 'package:video_player/video_player.dart';
 import '../../../logic/posts-cubit/posts_cubit.dart';
 
-class PostsGridView extends StatefulWidget {
-  const PostsGridView({Key? key}) : super(key: key);
+class SavedGridView extends StatefulWidget {
+  const SavedGridView({Key? key}) : super(key: key);
 
   @override
-  _PostsGridViewState createState() => _PostsGridViewState();
+  _SavedGridViewState createState() => _SavedGridViewState();
 }
 
-class _PostsGridViewState extends State<PostsGridView> {
+class _SavedGridViewState extends State<SavedGridView> {
   @override
   void initState() {
     super.initState();
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
       print("Fetching posts for user: $userId");
-      context.read<PostsCubit>().fetchUserPosts(userId);
+      context.read<PostsCubit>().fetchFavoritePosts(userId);
     } else {
       print("No user is currently logged in.");
     }
@@ -75,7 +75,7 @@ class _PostsGridViewState extends State<PostsGridView> {
                 ),
               );
             },
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
             ),
           );

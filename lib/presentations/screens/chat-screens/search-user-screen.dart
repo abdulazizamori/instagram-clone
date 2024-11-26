@@ -30,7 +30,7 @@ class _DirectSearchUsersScreenState extends State<DirectSearchUsersScreen> {
               height: 5,
             ),
             Divider(),
-            Expanded(child: CustomListViewOfUsersWidget())
+            Expanded(child: CustomExploreListViewOfUsersWidget())
           ],
         ),
       ),

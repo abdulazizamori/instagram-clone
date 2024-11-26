@@ -28,7 +28,7 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
               height: 5,
             ),
             Divider(),
-            Expanded(child: CustomListViewOfUsersWidget())
+            Expanded(child: CustomExploreListViewOfUsersWidget())
           ],
         ),
       ),

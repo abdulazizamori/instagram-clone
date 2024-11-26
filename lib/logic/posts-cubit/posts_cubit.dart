@@ -123,10 +123,15 @@ class PostsCubit extends Cubit<PostsState> {
 
   Future<void> toggleFavoritePost(PostModel post) async {
     try {
-      final userRef = FirebaseFirestore.instance.collection('users').doc(post.uid);
-      final favoritesRef = userRef.collection('favorites');
-      final docSnapshot = await favoritesRef.doc(post.postId).get();
+      // Get the currently logged-in user ID
+      final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
+      // Reference to the logged-in user's favorites collection
+      final userRef = FirebaseFirestore.instance.collection('users').doc(currentUserId);
+      final favoritesRef = userRef.collection('favorites');
+
+      // Check if the post is already saved
+      final docSnapshot = await favoritesRef.doc(post.postId).get();
       bool isCurrentlySaved = docSnapshot.exists;
 
       if (isCurrentlySaved) {
@@ -137,15 +142,15 @@ class PostsCubit extends Cubit<PostsState> {
         // Post is not in favorites, add it
         await favoritesRef.doc(post.postId).set({
           'postId': post.postId,
-          'userId': post.uid,
-          'createdAt': FieldValue.serverTimestamp(),
+          'ownerId': post.uid, // ID of the post owner
+          'mediaUrls': post.mediaUrls,
+          'createdAt': FieldValue.serverTimestamp(), // Store server timestamp
         });
         print("Post added to favorites");
       }
 
       // Toggle the 'isSaved' status locally in the post
       post.isSaved = !isCurrentlySaved;
-
     } catch (e) {
       print("Error toggling favorite post: $e");
     }
@@ -271,8 +276,42 @@ class PostsCubit extends Cubit<PostsState> {
   }
 
 
+// Function to fetch favorite posts for the current user
+  Future<List<PostModel>> fetchFavoritePosts(String userId) async {
+    try {
+      // Fetch the documents from the user's posts collection
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      // Map the fetched documents to a list of PostModel instances
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data == null) return PostModel();  // Return a default PostModel if data is null
+
+        return PostModel(
+          postId: data['postId'] ?? '',  // Default to empty string if null
+          uid: data['userId'] ?? '',     // Default to empty string if null
+          mediaUrls: List<String>.from(data['mediaUrls'] ?? []),  // Handle null mediaUrls
+          createdAt: data['createdAt'] != null
+              ? (data['createdAt'] as Timestamp).toDate()  // Convert Timestamp to DateTime if not null
+              : null,
+        );
+      }).toList();
+    } catch (e) {
+      print("Error fetching favorite posts: $e");
+      return [];  // Return an empty list on error
+    }
+  }
 
 
 
 
 }
+
+
+
+
